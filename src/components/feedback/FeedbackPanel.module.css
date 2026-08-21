@@ -1,0 +1,21 @@
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.panel p {
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.panel p:last-child {
+  margin-bottom: 0;
+}
+
+.ok {
+  background: var(--color-success-soft);
+}
+
+.bad {
+  background: var(--color-warning-soft);
+}

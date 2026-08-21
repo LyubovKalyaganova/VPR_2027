@@ -1,0 +1,53 @@
+.page {
+  display: grid;
+  gap: 14px;
+}
+
+.kicker {
+  margin: 0 0 6px;
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero h2 {
+  margin: 0 0 8px;
+  font-size: 40px;
+  letter-spacing: -0.05em;
+}
+
+.hero p,
+.page p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stats b {
+  display: block;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.stats span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.page h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+}

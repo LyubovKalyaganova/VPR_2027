@@ -1,0 +1,79 @@
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.option {
+  min-height: 52px;
+  padding: 12px 16px;
+  text-align: left;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: 0 0 0 3px rgba(79, 107, 255, 0.12);
+}
+
+.input {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: 20px;
+}
+
+.input:disabled {
+  background: #f3f4f8;
+}
+
+.row {
+  display: grid;
+  gap: 8px;
+}
+
+.rowTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.pool {
+  display: grid;
+  gap: 8px;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}

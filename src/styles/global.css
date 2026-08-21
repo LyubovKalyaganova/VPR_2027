@@ -1,0 +1,29 @@
+@import './tokens.css';
+
+#root {
+  min-height: 100dvh;
+}
+
+.appCanvas {
+  min-height: 100dvh;
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 520px) {
+  .appCanvas {
+    box-shadow: 0 0 0 1px rgba(32, 36, 42, 0.04), 0 18px 50px rgba(32, 36, 42, 0.08);
+    min-height: 100dvh;
+  }
+}
+
+.bootScreen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-secondary);
+  font-weight: 650;
+}

@@ -1,0 +1,61 @@
+.page {
+  display: grid;
+  gap: 12px;
+}
+
+.lead {
+  margin: 4px 0 2px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.mode {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  text-align: left;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+}
+
+.mode span {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.mode:disabled {
+  opacity: 0.55;
+}
+
+.selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.page h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.page p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.topics {
+  display: grid;
+  gap: 10px;
+}
+
+.topicMeta {
+  display: grid;
+  gap: 2px;
+}

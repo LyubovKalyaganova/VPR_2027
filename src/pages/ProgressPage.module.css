@@ -1,0 +1,102 @@
+.page {
+  display: grid;
+  gap: 20px;
+}
+
+.kicker {
+  margin: 0 0 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.overall h2 {
+  margin: 0 0 6px;
+  font-size: 32px;
+  letter-spacing: -0.04em;
+}
+
+.overall p,
+.page section p {
+  margin: 0 0 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.page h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.levels {
+  display: grid;
+  gap: 8px;
+}
+
+.level {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 10px;
+  align-items: center;
+  color: var(--color-text-secondary);
+}
+
+.level span {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e8ebf3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.levelOn {
+  color: var(--color-text);
+}
+
+.levelOn span {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.subjects,
+.weak {
+  display: grid;
+  gap: 8px;
+}
+
+.subjectRow {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.subjectRow > div {
+  display: grid;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.weakItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.weakItem span {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-warning);
+  font-size: 13px;
+}

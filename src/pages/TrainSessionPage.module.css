@@ -1,0 +1,14 @@
+.body {
+  display: grid;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  padding-top: 8px;
+  background: linear-gradient(to top, var(--color-bg) 70%, transparent);
+}

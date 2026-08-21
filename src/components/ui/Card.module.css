@@ -1,0 +1,13 @@
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.sm {
+  padding: 14px;
+}
+
+.md {
+  padding: 18px;
+}

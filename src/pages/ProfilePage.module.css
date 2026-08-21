@@ -1,0 +1,82 @@
+.page {
+  display: grid;
+  gap: 14px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.hero h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.hero p,
+.page p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stats b {
+  display: block;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.stats span,
+.badge span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.page h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.badges {
+  display: grid;
+  gap: 8px;
+}
+
+.badge strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.badgeOn {
+  background: var(--color-success-soft);
+}
+
+.badgeOff {
+  opacity: 0.55;
+}
+
+.historyList {
+  display: grid;
+  gap: 8px;
+}
+
+.historyCard {
+  display: grid;
+  gap: 4px;
+}
+
+.historyCard strong {
+  font-size: 15px;
+}
+
+.historyCard span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}

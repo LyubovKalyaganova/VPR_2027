@@ -1,0 +1,17 @@
+.wrap {
+  display: grid;
+  gap: 12px;
+}
+
+.passage {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.question {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}

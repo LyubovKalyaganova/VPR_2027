@@ -1,0 +1,150 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d8dce7;
+}
+
+.dotActive {
+  background: var(--color-accent);
+}
+
+.block h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.kicker {
+  margin: 0 0 8px;
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lead {
+  margin: 0 0 20px;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.label,
+.sub {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.input {
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: 18px;
+  padding: 0 16px;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: 18px;
+}
+
+.avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.avatarBtn {
+  padding: 0;
+  border: 2px solid transparent;
+  background: transparent;
+  border-radius: 50%;
+}
+
+.avatarActive {
+  border-color: var(--color-text);
+}
+
+.classCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.classCard strong {
+  font-size: 18px;
+}
+
+.classCard span {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.subjectList {
+  display: grid;
+  gap: 10px;
+}
+
+.subject {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 12px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: var(--color-card);
+}
+
+.subject strong,
+.subject em {
+  display: block;
+}
+
+.subject em {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-style: normal;
+  font-size: 13px;
+}
+
+.subjectSelected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.subjectMark {
+  width: 10px;
+  border-radius: 99px;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.footer {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+  padding-top: 24px;
+}

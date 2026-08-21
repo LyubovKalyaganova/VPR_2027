@@ -1,0 +1,74 @@
+.page {
+  display: grid;
+  gap: 12px;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.kicker {
+  margin: 0 0 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.summary p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.summary strong {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.skill {
+  display: grid;
+  gap: 8px;
+}
+
+.skillHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.skillHead h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.skillMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.recommend {
+  color: var(--color-warning);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.page a {
+  display: block;
+}
