@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SUBJECTS } from '../data/demo/subjects';
+import { MATH_SKILLS } from '../data/taxonomy/math';
 import { localAttemptRecorder } from '../db';
 import { getAchievements, getNextAchievementHint } from '../services/achievementService';
 import {
@@ -14,10 +15,61 @@ import { getDailyPlanProgress } from '../services/dailyPlanProgressService';
 import { getDailyPlanHistory, summaryFromDailyPlan } from '../services/dailyPlanHistoryService';
 import { getCalendarDate } from '../services/dailyPlanStorage';
 import type { DailyPlan } from '../services/dailyPlanService';
-import { useTrainingStore } from '../store/useTrainingStore';
+import { resolveRecommendationLaunch } from '../services/learningRecommendationRunner';
+import {
+  getLearningRecommendation,
+  type LearningRecommendation,
+  type LearningRecommendationAction,
+  type LearningRecommendationType,
+} from '../services/learningRecommendationService';
+import {
+  selectDueMathSkills,
+  selectMistakeTasks,
+  useTrainingStore,
+} from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
 import { Button, Card, ProgressBar, RingProgress } from '../components/ui';
 import styles from './HomePage.module.css';
+
+function recommendationButtonLabel(type: LearningRecommendationType): string {
+  switch (type) {
+    case 'continue-daily':
+      return 'Продолжить план';
+    case 'mistakes':
+      return 'Разобрать ошибки';
+    case 'review':
+      return 'Повторить';
+    case 'weak':
+    case 'reinforcement':
+      return 'Тренироваться';
+    case 'new-skill':
+      return 'Начать';
+    case 'start':
+      return 'Начать тренировку';
+  }
+}
+
+function unavailableActionMessage(action: LearningRecommendationAction): string {
+  switch (action) {
+    case 'daily':
+      return 'На сегодня заданий нет';
+    case 'mistakes':
+      return 'Пока нет ошибок для повторения';
+    case 'review':
+      return 'На сегодня повторение не требуется';
+    case 'weak':
+      return 'Пока нет заданий для тренировки';
+    default:
+      return 'Сейчас нет заданий для этой тренировки';
+  }
+}
+
+function skillTitleById(skillId: string | undefined): string | undefined {
+  if (!skillId) {
+    return undefined;
+  }
+  return MATH_SKILLS.find((skill) => skill.id === skillId)?.title;
+}
 
 function countPlanSources(plan: DailyPlan) {
   let weak = 0;
@@ -40,7 +92,12 @@ export function HomePage() {
   const location = useLocation();
   const profile = useUserStore((state) => state.profile);
   const startDaily = useTrainingStore((state) => state.startDaily);
+  const startMistakes = useTrainingStore((state) => state.startMistakes);
+  const startReview = useTrainingStore((state) => state.startReview);
+  const startWeak = useTrainingStore((state) => state.startWeak);
+  const startMath = useTrainingStore((state) => state.startMath);
   const [planUnavailable, setPlanUnavailable] = useState(false);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
   const name = profile?.name ?? 'друг';
   const userId = profile?.userId;
   const progress = getChildProgress(
@@ -75,6 +132,43 @@ export function HomePage() {
       attempts,
     });
     const childProgress = getChildProgress(attempts, userId);
+    const dueSkillIds = selectDueMathSkills(attempts, userId, nowIso).map((skill) => skill.id);
+    const weakIdSet = new Set(childProgress.weakSkills.map((item) => item.skill.id));
+    const weakSkillIds = childProgress.mathSkills
+      .filter((item) => weakIdSet.has(item.skill.id))
+      .map((item) => item.skill.id);
+    const hasSkillData = childProgress.mathSkills.some((item) => item.mastery.status !== 'new');
+    const newSkillIds = hasSkillData
+      ? childProgress.mathSkills
+          .filter((item) => item.mastery.status === 'new')
+          .map((item) => item.skill.id)
+      : [];
+    const dueIdSet = new Set(dueSkillIds);
+    const reinforcementSkillIds = childProgress.mathSkills
+      .filter((item) => {
+        const status = item.mastery.status;
+        return (
+          item.mastery.attemptsCount > 0 &&
+          !dueIdSet.has(item.skill.id) &&
+          !weakIdSet.has(item.skill.id) &&
+          (status === 'developing' || status === 'confident' || status === 'mastered')
+        );
+      })
+      .map((item) => item.skill.id);
+    const recommendation = getLearningRecommendation({
+      userId,
+      dailyPlan: {
+        total: planProgress.total,
+        completed: planProgress.completed,
+        remaining: planProgress.remaining,
+        isCompleted: planProgress.isCompleted,
+      },
+      mistakes: { count: selectMistakeTasks(attempts, userId).length },
+      dueSkillIds,
+      weakSkillIds,
+      newSkillIds,
+      reinforcementSkillIds,
+    });
     const achievementInput = {
       userId,
       attempts,
@@ -87,6 +181,7 @@ export function HomePage() {
       sources: countPlanSources(plan),
       planProgress,
       todaySummary,
+      recommendation,
       nextHint: getNextAchievementHint(achievements, achievementInput),
     };
   }, [userId, location.key]);
@@ -99,6 +194,9 @@ export function HomePage() {
   const canStart = Boolean(userId) && total > 0 && !planUnavailable && !isCompleted;
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+  const recommendation = daily?.recommendation;
+  const recommendationSkillTitle = skillTitleById(recommendation?.skillId);
+
   function handleStartPlan() {
     if (!userId || !canStart) {
       return;
@@ -106,6 +204,33 @@ export function HomePage() {
     const sessionId = startDaily(userId);
     if (!sessionId) {
       setPlanUnavailable(true);
+      return;
+    }
+    navigate(`/train/session/${sessionId}`);
+  }
+
+  function handleRecommendationAction(current: LearningRecommendation) {
+    if (!userId) {
+      return;
+    }
+    setActionNotice(null);
+    const launch = resolveRecommendationLaunch(current);
+    if (!launch) {
+      setActionNotice(unavailableActionMessage(current.action));
+      return;
+    }
+    const sessionId =
+      launch.start === 'startDaily'
+        ? startDaily(userId)
+        : launch.start === 'startMistakes'
+          ? startMistakes(userId)
+          : launch.start === 'startReview'
+            ? startReview(userId)
+            : launch.start === 'startWeak'
+              ? startWeak(userId)
+              : startMath(userId, launch.mode);
+    if (!sessionId) {
+      setActionNotice(unavailableActionMessage(current.action));
       return;
     }
     navigate(`/train/session/${sessionId}`);
@@ -127,6 +252,21 @@ export function HomePage() {
           </Link>
         </div>
       </Card>
+
+      {recommendation ? (
+        <Card className={styles.nextStep}>
+          <p className={styles.nextStepKicker}>Что делать дальше</p>
+          <h2>{recommendation.title}</h2>
+          <p className={styles.nextStepText}>{recommendation.reason}</p>
+          {recommendationSkillTitle ? (
+            <p className={styles.nextStepSkill}>{recommendationSkillTitle}</p>
+          ) : null}
+          {actionNotice ? <p className={styles.nextStepNotice}>{actionNotice}</p> : null}
+          <Button fullWidth onClick={() => handleRecommendationAction(recommendation)}>
+            {recommendationButtonLabel(recommendation.type)}
+          </Button>
+        </Card>
+      ) : null}
 
       {daily?.nextHint ? (
         <Card padding="sm" className={styles.motivation}>
