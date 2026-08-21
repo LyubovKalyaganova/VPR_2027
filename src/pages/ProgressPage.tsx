@@ -10,6 +10,7 @@ import {
   getReadinessCaption,
 } from '../services/progressService';
 import { getSkillMasteryView } from '../services/skillMasteryView';
+import { getLearningPathView, type LearningPathMarker } from '../services/learningPathView';
 import { useUserStore } from '../store/useUserStore';
 import type { MasteryStatus } from '../types';
 import { Card, ProgressBar } from '../components/ui';
@@ -31,6 +32,18 @@ const BAR_COLOR: Record<MasteryStatus, string> = {
   mastered: 'var(--color-success)',
 };
 
+const PATH_MARK: Record<LearningPathMarker, string> = {
+  completed: '✓',
+  current: '●',
+  ahead: '○',
+};
+
+const PATH_CLASS: Record<LearningPathMarker, string> = {
+  completed: styles.pathCompleted,
+  current: styles.pathCurrentNode,
+  ahead: styles.pathAhead,
+};
+
 export function ProgressPage() {
   const profile = useUserStore((state) => state.profile);
   const progress = getChildProgress(
@@ -38,6 +51,7 @@ export function ProgressPage() {
     profile?.userId ?? '',
   );
   const skillSections = getSkillMasteryView(progress.mathSkills);
+  const learningPath = getLearningPathView(progress.mathSkills);
   const levelIndex = getProgressLevelIndex(progress);
 
   return (
@@ -50,6 +64,53 @@ export function ProgressPage() {
         </div>
         <ProgressBar value={progress.mathScore ?? 0} ariaLabel="Общая готовность" />
       </Card>
+
+      <section>
+        <p className={styles.kicker}>Ваш путь по математике</p>
+        <h2>Путь обучения</h2>
+        <p>
+          Уже освоенные темы остаются позади, текущая тема находится в центре пути, а новые темы ждут
+          впереди.
+        </p>
+        <div className={styles.path}>
+          {learningPath.sections.map((section, index) => (
+            <div key={section.sectionId} className={styles.pathStep}>
+              <div className={`${styles.pathNode} ${PATH_CLASS[section.marker]}`}>
+                <span className={styles.pathMark} aria-hidden="true">
+                  {PATH_MARK[section.marker]}
+                </span>
+                <strong>{section.title}</strong>
+              </div>
+              {section.marker === 'current'
+                ? section.skills.map((item) =>
+                    item.isCurrent ? (
+                      <Card key={item.skillId} padding="sm" className={styles.pathCurrent}>
+                        <div className={styles.skillHead}>
+                          <strong>{item.title}</strong>
+                          <b>{item.scoreLabel}</b>
+                        </div>
+                        <div className={styles.skillMeta}>
+                          <span className={`${styles.status} ${STATUS_CLASS[item.status]}`}>
+                            {item.statusLabel}
+                          </span>
+                          <span className={styles.here}>Вы сейчас здесь</span>
+                        </div>
+                      </Card>
+                    ) : (
+                      <div key={item.skillId} className={styles.pathSkill}>
+                        <span>{item.title}</span>
+                        <span>{item.statusLabel}</span>
+                      </div>
+                    ),
+                  )
+                : null}
+              {index < learningPath.sections.length - 1 ? (
+                <div className={styles.pathLine} aria-hidden="true" />
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section>
         <h2>Карта прогресса</h2>

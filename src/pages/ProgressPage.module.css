@@ -188,3 +188,77 @@
   color: var(--color-text-secondary);
   font-size: 12px;
 }
+
+.path {
+  display: grid;
+}
+
+.pathStep {
+  display: grid;
+  gap: 8px;
+}
+
+.pathNode {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.pathMark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pathCompleted .pathMark {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.pathCurrentNode .pathMark {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.pathAhead .pathMark {
+  background: #e8ebf3;
+  color: var(--color-text-secondary);
+}
+
+.pathAhead strong {
+  color: var(--color-text-secondary);
+  font-weight: 650;
+}
+
+.pathCurrent {
+  display: grid;
+  gap: 8px;
+  margin-left: 36px;
+}
+
+.here {
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.pathSkill {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-left: 36px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.pathLine {
+  width: 2px;
+  height: 16px;
+  margin: 0 0 0 13px;
+  background: var(--color-line);
+}
