@@ -80,3 +80,46 @@
   color: var(--color-text-secondary);
   font-size: 13px;
 }
+
+.motivation {
+  display: grid;
+  gap: 10px;
+}
+
+.page .mastered {
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.earnedList {
+  display: grid;
+  gap: 8px;
+}
+
+.earnedItem {
+  display: grid;
+  gap: 2px;
+}
+
+.earnedItem strong {
+  font-size: 14px;
+}
+
+.earnedItem span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.nextGoal {
+  display: grid;
+  gap: 4px;
+}
+
+.nextGoal span {
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

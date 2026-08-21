@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { localAttemptRecorder } from '../db';
-import { getAchievements } from '../services/achievementService';
+import { getAchievements, getNextAchievementHint } from '../services/achievementService';
 import { getDailyPlanHistory } from '../services/dailyPlanHistoryService';
 import {
   formatScoreLabel,
   getChildProgress,
   minutesFromMs,
 } from '../services/progressService';
+import { getMotivationView } from '../services/motivationView';
 import { useUserStore } from '../store/useUserStore';
 import { Avatar, Button, Card, Modal } from '../components/ui';
 import styles from './ProfilePage.module.css';
@@ -50,14 +51,20 @@ export function ProfilePage() {
         attempts,
       })
     : [];
-  const achievements = profile
-    ? getAchievements({
+  const achievementInput = profile
+    ? {
         userId: profile.userId,
         attempts,
         mathSkills: progress.mathSkills,
         planSummaries: planHistory,
-      })
-    : [];
+      }
+    : null;
+  const achievements = achievementInput ? getAchievements(achievementInput) : [];
+  const motivation = getMotivationView({
+    mathSkills: progress.mathSkills,
+    achievements,
+    nextHint: achievementInput ? getNextAchievementHint(achievements, achievementInput) : null,
+  });
 
   if (!profile) {
     return null;
@@ -118,6 +125,30 @@ export function ProfilePage() {
             ))}
           </div>
         )}
+      </section>
+
+      <section>
+        <h3>Ваш прогресс</h3>
+        <Card padding="sm" className={styles.motivation}>
+          <p className={styles.mastered}>{motivation.masteredPhrase}</p>
+          {motivation.emptyMessage ? <p>{motivation.emptyMessage}</p> : null}
+          {motivation.earned.length > 0 ? (
+            <div className={styles.earnedList}>
+              {motivation.earned.map((item) => (
+                <div key={item.title} className={styles.earnedItem}>
+                  <strong>{item.title}</strong>
+                  <span>{item.description}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {motivation.nextGoal ? (
+            <p className={styles.nextGoal}>
+              <span>Следующая цель</span>
+              {motivation.nextGoal}
+            </p>
+          ) : null}
+        </Card>
       </section>
 
       <section>
