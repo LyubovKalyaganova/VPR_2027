@@ -100,3 +100,91 @@
   color: var(--color-warning);
   font-size: 13px;
 }
+
+.skills {
+  display: grid;
+  gap: 16px;
+}
+
+.skillGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.skillGroup h3 {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.skillCard {
+  display: grid;
+  gap: 8px;
+}
+
+.skillHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.skillHead strong {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.skillHead b {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.skillMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statusNew {
+  background: #e8ebf3;
+  color: var(--color-text-secondary);
+}
+
+.statusNotMastered {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.statusDeveloping {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.statusConfident {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.statusMastered {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.attempts {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}

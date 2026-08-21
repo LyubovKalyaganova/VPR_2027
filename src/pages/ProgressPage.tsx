@@ -9,9 +9,27 @@ import {
   getProgressLevelIndex,
   getReadinessCaption,
 } from '../services/progressService';
+import { getSkillMasteryView } from '../services/skillMasteryView';
 import { useUserStore } from '../store/useUserStore';
+import type { MasteryStatus } from '../types';
 import { Card, ProgressBar } from '../components/ui';
 import styles from './ProgressPage.module.css';
+
+const STATUS_CLASS: Record<MasteryStatus, string> = {
+  new: styles.statusNew,
+  not_mastered: styles.statusNotMastered,
+  developing: styles.statusDeveloping,
+  confident: styles.statusConfident,
+  mastered: styles.statusMastered,
+};
+
+const BAR_COLOR: Record<MasteryStatus, string> = {
+  new: '#c5cad6',
+  not_mastered: 'var(--color-danger)',
+  developing: 'var(--color-warning)',
+  confident: 'var(--color-accent)',
+  mastered: 'var(--color-success)',
+};
 
 export function ProgressPage() {
   const profile = useUserStore((state) => state.profile);
@@ -19,6 +37,7 @@ export function ProgressPage() {
     profile ? localAttemptRecorder.getAll(profile.userId) : [],
     profile?.userId ?? '',
   );
+  const skillSections = getSkillMasteryView(progress.mathSkills);
   const levelIndex = getProgressLevelIndex(progress);
 
   return (
@@ -89,6 +108,38 @@ export function ProgressPage() {
               </Card>
             ))
           )}
+        </div>
+      </section>
+
+      <section>
+        <h2>Навыки</h2>
+        <div className={styles.skills}>
+          {skillSections.map((section) => (
+            <div key={section.sectionId} className={styles.skillGroup}>
+              <h3>{section.title}</h3>
+              {section.skills.map((item) => (
+                <Card key={item.skillId} padding="sm" className={styles.skillCard}>
+                  <div className={styles.skillHead}>
+                    <strong>{item.title}</strong>
+                    <b>{item.scoreLabel}</b>
+                  </div>
+                  <ProgressBar
+                    value={item.progressValue}
+                    color={BAR_COLOR[item.status]}
+                    ariaLabel={item.title}
+                  />
+                  <div className={styles.skillMeta}>
+                    <span className={`${styles.status} ${STATUS_CLASS[item.status]}`}>
+                      {item.statusLabel}
+                    </span>
+                    {item.attemptsCount > 0 ? (
+                      <span className={styles.attempts}>{item.attemptsCount} заданий</span>
+                    ) : null}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ))}
         </div>
       </section>
     </div>
