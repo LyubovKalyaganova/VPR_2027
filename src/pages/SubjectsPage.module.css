@@ -35,6 +35,7 @@
 .body {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .body h2 {
@@ -52,6 +53,8 @@
 .meta {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   color: var(--color-text-secondary);
   font-size: 13px;
 }

@@ -1,6 +1,6 @@
 .header {
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: 44px 1fr 44px;
   align-items: center;
   min-height: 56px;
   padding: 8px 8px 0;
@@ -8,15 +8,17 @@
 
 .title {
   margin: 0;
+  min-width: 0;
   text-align: center;
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
 }
 
 .back {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
   background: transparent;
   color: var(--color-text);
@@ -26,6 +28,6 @@
 }
 
 .spacer {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
 }

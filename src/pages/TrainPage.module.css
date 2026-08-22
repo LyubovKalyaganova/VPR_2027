@@ -17,6 +17,8 @@
 .mode {
   display: grid;
   gap: 4px;
+  width: 100%;
+  min-height: 52px;
   padding: 16px;
   text-align: left;
   border: 1px solid var(--color-line);

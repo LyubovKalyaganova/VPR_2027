@@ -10,6 +10,10 @@
   align-items: center;
 }
 
+.summary > div {
+  min-width: 0;
+}
+
 .kicker {
   margin: 0 0 4px;
   color: var(--color-text-secondary);
@@ -53,7 +57,9 @@
 
 .skillHead h3 {
   margin: 0;
+  min-width: 0;
   font-size: 16px;
+  overflow-wrap: anywhere;
 }
 
 .skillMeta {

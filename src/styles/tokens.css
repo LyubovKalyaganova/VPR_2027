@@ -44,6 +44,12 @@ html,
 body,
 #root {
   min-height: 100%;
+  max-width: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -52,11 +58,14 @@ body {
   color: var(--color-text);
   background: #e8ebf3;
   -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
 }
 
 button,
-input {
+input,
+a {
   font-family: inherit;
+  touch-action: manipulation;
 }
 
 button {

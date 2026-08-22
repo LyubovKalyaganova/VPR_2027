@@ -6,7 +6,7 @@
 
 .appCanvas {
   min-height: 100dvh;
-  max-width: var(--app-max-width);
+  max-width: min(var(--app-max-width), 100%);
   margin: 0 auto;
   background: var(--color-bg);
   position: relative;

@@ -17,6 +17,13 @@
   margin: 0;
   font-size: 30px;
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 360px) {
+  .hello {
+    font-size: 26px;
+  }
 }
 
 .lead {
@@ -67,7 +74,7 @@
 
 .subjectHead {
   display: grid;
-  grid-template-columns: 10px 1fr auto;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
@@ -163,7 +170,7 @@
 
 .historyHead {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }

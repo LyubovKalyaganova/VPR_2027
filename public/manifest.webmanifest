@@ -1,0 +1,12 @@
+{
+  "name": "ВПР 4 класс 2027",
+  "short_name": "ВПР 4 класс",
+  "description": "Тренажёр подготовки к ВПР для учеников 4 класса",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e8ebf3",
+  "theme_color": "#F7F8FC",
+  "lang": "ru"
+}
