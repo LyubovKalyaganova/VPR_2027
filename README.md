@@ -2,7 +2,7 @@
 
 Образовательное приложение для подготовки учеников 4 класса к ВПР.
 
-Стек: React + TypeScript + Vite. Локальное хранение прогресса (без сервера). Android-оболочка через Capacitor присутствует в репозитории.
+Стек: React + TypeScript + Vite. Локальное хранение прогресса (без сервера). Android-оболочка через Capacitor.
 
 ---
 
@@ -19,9 +19,12 @@
 | Литературное чтение L01–L24 | **FROZEN** |
 | Английский язык E01–E18 | **FROZEN** |
 | Progress / Mastery / Adaptive | **Этап 14** — история попыток ? mastery ? weak |
+| Training (quick / normal / random / topic / weak) | **READY** |
+| VPR Exam (таймер, scoring, resume) | **READY** (Этап 16 FROZEN) |
 | Subject-aware training | mathematics / russian / world / reading / english |
 | Typecheck / build | Проходят |
-| Capacitor / `android/` | Присутствуют |
+| Android integration (Capacitor) | **READY** (Этап 18–20 FROZEN) |
+| Release AAB | Собирается (`npm run android:bundleRelease`) |
 
 **Прогресс (Этап 14):**
 - Source of truth: `Attempt` history (`localAttemptRecorder` / localStorage)
@@ -38,9 +41,10 @@ Answer ? Checker ? AttemptRecorder ? History ? Mastery ? Adaptive / UI
 
 ### Ещё не завершено
 
-- Полноценный exam/ВПР-режим (таймер, оценка)
-- Сервер / облачная синхронизация
-- Android production/store readiness не объявлена
+- Физический Android smoke test — **pending device**
+- Release signing (`signing.properties`) — **pending**
+- RuStore upload — **not yet**
+- Сервер / облачная синхронизация — не планируется
 
 M36+, R26+, W26+, L25+, E19+ **не создаются** без отдельного решения.
 
@@ -67,13 +71,21 @@ npm install
 npm run dev
 ```
 
-Проверки прогресса:
+Проверки:
 
 ```bash
 npm run test:progress
 npm run test:mastery
 npm run test:adaptive
 npm run test:attempt-history
+npm run test:release-audit
 npm run typecheck
 npm run build
+```
+
+Android:
+
+```bash
+npm run android:build
+npm run android:bundleRelease
 ```
