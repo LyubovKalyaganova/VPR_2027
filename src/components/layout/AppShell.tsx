@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { SUBJECTS } from '../../data/demo/subjects';
+import { AndroidBackHandler } from './AndroidBackHandler';
 import { BottomNav } from './BottomNav';
 import { Header } from './Header';
 import styles from './AppShell.module.css';
@@ -61,6 +62,7 @@ export function AppShell() {
 
   return (
     <div className={styles.shell}>
+      <AndroidBackHandler />
       {hideHeader ? null : <Header title={title} showBack={showBack} backTo={backTo} />}
       <main className={`${styles.main} ${hideNav ? styles.mainTight : ''}`}>
         <Outlet />

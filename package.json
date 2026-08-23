@@ -73,10 +73,20 @@
     "test:exam-persistence": "node scripts/run-exam-check.mjs reportExamPersistenceSelfChecks",
     "test:exam-flow": "node scripts/run-exam-check.mjs reportExamFlowSelfChecks",
     "test:ux-routes": "node scripts/run-ux-check.mjs reportStage17UxSelfChecks",
-    "test:subject-isolation": "node scripts/run-ux-check.mjs reportStage17SubjectIsolationSelfChecks"
+    "test:subject-isolation": "node scripts/run-ux-check.mjs reportStage17SubjectIsolationSelfChecks",
+    "test:android-integration": "node scripts/run-android-check.mjs reportStage18AndroidSelfChecks",
+    "test:android-persistence": "node scripts/run-android-check.mjs reportStage18PersistenceSelfChecks",
+    "test:device-smoke": "node scripts/run-device-check.mjs reportStage19DeviceSelfChecks",
+    "test:exam-resume": "node scripts/run-device-check.mjs reportStage19ExamResumeSelfChecks",
+    "test:release-audit": "node scripts/run-release-audit.mjs reportStage20ReleaseAudit",
+    "cap:sync": "npm run build && npx cap sync android",
+    "cap:open": "npx cap open android",
+    "android:build": "npm run cap:sync && cd android && .\\gradlew.bat assembleDebug",
+    "android:bundleRelease": "npm run cap:sync && cd android && .\\gradlew.bat bundleRelease"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

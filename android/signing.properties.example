@@ -1,0 +1,10 @@
+# Copy to signing.properties and fill with your release keystore values.
+# NEVER commit signing.properties or *.keystore to Git.
+#
+# Generate keystore (run locally, not in CI logs):
+#   keytool -genkeypair -v -keystore release.keystore -alias vpr2027 -keyalg RSA -keysize 2048 -validity 10000
+#
+storeFile=../release.keystore
+storePassword=REPLACE_WITH_STORE_PASSWORD
+keyAlias=vpr2027
+keyPassword=REPLACE_WITH_KEY_PASSWORD
