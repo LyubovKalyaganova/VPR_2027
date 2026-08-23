@@ -311,7 +311,7 @@ export function getSubjectScore(attempts: Attempt[], userId: string, subjectId: 
   );
 }
 
-function topicTitleFor(subjectId: SubjectId, topicId: string): string {
+export function getTopicTitleForSubject(subjectId: SubjectId, topicId: string): string {
   const topics =
     subjectId === 'mathematics'
       ? MATH_TOPICS
@@ -340,7 +340,7 @@ export function getTopicProgressForSubject(
   }
   return [...byTopic.entries()].map(([topicId, topicSkills]) => ({
     topicId,
-    title: topicTitleFor(subjectId, topicId),
+    title: getTopicTitleForSubject(subjectId, topicId),
     score: averageDefined(
       topicSkills.map((skill) => calculateSkillMastery(attempts, skill.id, userId).masteryScore),
     ),

@@ -41,6 +41,7 @@ export function TrainPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const subject = parseTrainSubject(searchParams.get('subject'));
+  const initialMode = searchParams.get('mode');
   const profile = useUserStore((state) => state.profile);
   const startDemo = useTrainingStore((state) => state.startDemo);
   const startMath = useTrainingStore((state) => state.startMath);
@@ -61,7 +62,12 @@ export function TrainPage() {
   const startReview = useTrainingStore((state) => state.startReview);
   const startDaily = useTrainingStore((state) => state.startDaily);
   const startMistakes = useTrainingStore((state) => state.startMistakes);
-  const [selected, setSelected] = useState<TrainingMode>('quick');
+  const [selected, setSelected] = useState<TrainingMode>(() => {
+    if (initialMode === 'weak' || initialMode === 'topic' || initialMode === 'random') {
+      return initialMode;
+    }
+    return 'quick';
+  });
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -205,7 +211,8 @@ export function TrainPage() {
   return (
     <div className={styles.page}>
       <p className={styles.lead}>
-        Учебная тренировка по {subjectTitle(subject)}. Задания используют weighted mix по навыкам ВПР-2027.
+        Учебная тренировка по {subjectTitle(subject)}. Режимы quick/normal — weighted mix; random — случайный
+        выбор из банка предмета.
       </p>
 
       <div className={styles.list}>

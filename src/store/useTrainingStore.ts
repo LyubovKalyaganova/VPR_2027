@@ -20,12 +20,16 @@ import { getReviewState } from '../services/reviewScheduler';
 import { getDailyPlan } from '../services/dailyPlanRunner';
 import { getRemainingDailyTaskIds } from '../services/dailyPlanProgressService';
 import { taskRepository } from '../services/taskRepository';
+import {
+  assertUniqueTaskIds,
+  pickRandomSubjectTasks,
+  pickTopicSessionTasks,
+} from '../services/trainingSessionBuilder';
 import type { Attempt, Task, SubjectId, TrainingMode } from '../types';
-import { shuffle } from '../utils/shuffle';
 
 /**
- * quick / normal / random: взвешенный mix (MATH_SKILL_WEIGHTS → recommendSessionSkillMix → generators).
- * Не равномерный shuffle по всему банку.
+ * quick / normal: взвешенный mix (trainingWeight → generators).
+ * random: равномерный shuffle из банка предмета.
  */
 function pickWorldTasks(mode: TrainingMode): Task[] {
   switch (mode) {
@@ -34,7 +38,7 @@ function pickWorldTasks(mode: TrainingMode): Task[] {
     case 'normal':
       return selectWeightedWorldSessionTasks(10);
     case 'random':
-      return selectWeightedWorldSessionTasks(10, { seed: Date.now() >>> 0 });
+      return pickRandomSubjectTasks('world', 10);
     default:
       return taskRepository.getWorldTasks();
   }
@@ -47,7 +51,7 @@ function pickReadingTasks(mode: TrainingMode): Task[] {
     case 'normal':
       return selectWeightedReadingSessionTasks(10);
     case 'random':
-      return selectWeightedReadingSessionTasks(10, { seed: Date.now() >>> 0 });
+      return pickRandomSubjectTasks('reading', 10);
     default:
       return taskRepository.getLiteraryReadingTasks();
   }
@@ -60,7 +64,7 @@ function pickEnglishTasks(mode: TrainingMode): Task[] {
     case 'normal':
       return selectWeightedEnglishSessionTasks(10);
     case 'random':
-      return selectWeightedEnglishSessionTasks(10, { seed: Date.now() >>> 0 });
+      return pickRandomSubjectTasks('english', 10);
     default:
       return taskRepository.getEnglishTasks();
   }
@@ -73,7 +77,7 @@ function pickRussianTasks(mode: TrainingMode): Task[] {
     case 'normal':
       return selectWeightedRussianSessionTasks(10);
     case 'random':
-      return selectWeightedRussianSessionTasks(10, { seed: Date.now() >>> 0 });
+      return pickRandomSubjectTasks('russian', 10);
     default:
       return taskRepository.getRussianTasks();
   }
@@ -91,11 +95,19 @@ function pickMathTasks(mode: TrainingMode): Task[] {
     case 'quick':
       return selectWeightedMathSessionTasks(5);
     case 'normal':
-    case 'random':
       return selectWeightedMathSessionTasks(10);
+    case 'random':
+      return pickRandomSubjectTasks('mathematics', 10);
     default:
       return taskRepository.getMathTasks();
   }
+}
+
+function createTopicSessionTasks(subject: SubjectId, topicId: string): Task[] {
+  const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === subject);
+  const picked = pickTopicSessionTasks(tasks, 10);
+  assertUniqueTaskIds(picked);
+  return picked;
 }
 
 export const taskEngine = new TaskEngine(taskRepository.getById, localAttemptRecorder);
@@ -253,10 +265,13 @@ export const useTrainingStore = create<TrainingState>()(
         return session.id;
       },
       startMath: (userId, mode = 'quick') => {
+        const tasks = pickMathTasks(mode);
+        assertSubjectTasks(tasks, 'mathematics');
+        assertUniqueTaskIds(tasks);
         const session = taskEngine.createSession({
           userId,
           mode,
-          tasks: pickMathTasks(mode),
+          tasks,
         });
         set((state) => ({
           sessions: { ...state.sessions, [session.id]: session },
@@ -485,16 +500,14 @@ export const useTrainingStore = create<TrainingState>()(
         return session.id;
       },
       startMathTopic: (userId, topicId) => {
-        const tasks = taskRepository
-          .getByTopic(topicId)
-          .filter((task) => task.subject === 'mathematics');
+        const tasks = createTopicSessionTasks('mathematics', topicId);
         if (tasks.length === 0) {
           return null;
         }
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',
-          tasks: shuffle(tasks).slice(0, 10),
+          tasks,
         });
         set((state) => ({
           sessions: { ...state.sessions, [session.id]: session },
@@ -502,7 +515,7 @@ export const useTrainingStore = create<TrainingState>()(
         return session.id;
       },
       startRussianTopic: (userId, topicId) => {
-        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'russian');
+        const tasks = createTopicSessionTasks('russian', topicId);
         if (tasks.length === 0) {
           return null;
         }
@@ -510,7 +523,7 @@ export const useTrainingStore = create<TrainingState>()(
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',
-          tasks: shuffle(tasks).slice(0, 10),
+          tasks,
         });
         set((state) => ({
           sessions: { ...state.sessions, [session.id]: session },
@@ -518,7 +531,7 @@ export const useTrainingStore = create<TrainingState>()(
         return session.id;
       },
       startWorldTopic: (userId, topicId) => {
-        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'world');
+        const tasks = createTopicSessionTasks('world', topicId);
         if (tasks.length === 0) {
           return null;
         }
@@ -526,7 +539,7 @@ export const useTrainingStore = create<TrainingState>()(
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',
-          tasks: shuffle(tasks).slice(0, 10),
+          tasks,
         });
         set((state) => ({
           sessions: { ...state.sessions, [session.id]: session },
@@ -534,7 +547,7 @@ export const useTrainingStore = create<TrainingState>()(
         return session.id;
       },
       startLiteraryReadingTopic: (userId, topicId) => {
-        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'reading');
+        const tasks = createTopicSessionTasks('reading', topicId);
         if (tasks.length === 0) {
           return null;
         }
@@ -542,7 +555,7 @@ export const useTrainingStore = create<TrainingState>()(
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',
-          tasks: shuffle(tasks).slice(0, 10),
+          tasks,
         });
         set((state) => ({
           sessions: { ...state.sessions, [session.id]: session },
@@ -550,7 +563,7 @@ export const useTrainingStore = create<TrainingState>()(
         return session.id;
       },
       startEnglishTopic: (userId, topicId) => {
-        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'english');
+        const tasks = createTopicSessionTasks('english', topicId);
         if (tasks.length === 0) {
           return null;
         }
@@ -558,7 +571,7 @@ export const useTrainingStore = create<TrainingState>()(
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',
-          tasks: shuffle(tasks).slice(0, 10),
+          tasks,
         });
         set((state) => ({
           sessions: { ...state.sessions, [session.id]: session },
@@ -587,12 +600,7 @@ export const useTrainingStore = create<TrainingState>()(
         }
         const tasks = summary.incorrectTaskIds
           .map((id) => taskRepository.getById(id))
-          .filter((task): task is NonNullable<typeof task> => {
-            if (!task) {
-              return false;
-            }
-            return typeof task.skillId === 'string' && task.skillId.length > 0;
-          });
+          .filter((task): task is NonNullable<typeof task> => Boolean(task));
         if (tasks.length === 0) {
           return null;
         }

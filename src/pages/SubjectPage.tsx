@@ -61,6 +61,14 @@ export function SubjectPage() {
         <strong>{formatScoreLabel(score)}</strong>
       </Card>
 
+      {weakSkills.length === 0 && skills.every((item) => item.mastery.status === 'new') ? (
+        <Card padding="sm">
+          <p className={styles.emptyHint}>
+            Пока нет истории тренировок по этому предмету. Начните с быстрой или обычной тренировки.
+          </p>
+        </Card>
+      ) : null}
+
       {weakSkills.length > 0 ? (
         <Card padding="sm">
           <h3 className={styles.sectionTitle}>Нужно повторить</h3>
@@ -127,6 +135,20 @@ export function SubjectPage() {
       >
         Тренировать этот предмет
       </Button>
+      {weakSkills.length > 0 ? (
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => {
+            if (!profile) {
+              return;
+            }
+            navigate(`${trainPath(subjectId)}&mode=weak`);
+          }}
+        >
+          Тренировать слабые места
+        </Button>
+      ) : null}
     </div>
   );
 }

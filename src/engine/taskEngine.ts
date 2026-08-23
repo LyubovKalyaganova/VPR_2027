@@ -137,24 +137,26 @@ export class TaskEngine {
     const timeSpent = Math.max(0, Date.now() - session.itemStartedAt);
     const hintsUsed = session.hintsUsedOnCurrent;
 
-    this.recorder.record({
-      attemptId: createId('attempt'),
-      userId: session.userId,
-      questionId: task.id,
-      sessionId: session.id,
-      date: new Date().toISOString(),
-      answer: session.currentAnswer,
-      isCorrect,
-      timeSpent,
-      hintsUsed,
-      difficulty: task.difficulty,
-      subject: task.subject,
-      topic: task.topic,
-      skill: task.skill,
-      topicId: task.topicId,
-      skillId: task.skillId,
-      mode: session.mode,
-    });
+    if (session.mode !== 'demo') {
+      this.recorder.record({
+        attemptId: createId('attempt'),
+        userId: session.userId,
+        questionId: task.id,
+        sessionId: session.id,
+        date: new Date().toISOString(),
+        answer: session.currentAnswer,
+        isCorrect,
+        timeSpent,
+        hintsUsed,
+        difficulty: task.difficulty,
+        subject: task.subject,
+        topic: task.topic,
+        skill: task.skill,
+        topicId: task.topicId,
+        skillId: task.skillId,
+        mode: session.mode,
+      });
+    }
 
     const next = cloneSession(session);
     next.phase = 'feedback';

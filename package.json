@@ -64,7 +64,8 @@
     "test:progress": "node scripts/run-progress-check.mjs",
     "test:mastery": "node scripts/run-mastery-check.mjs",
     "test:adaptive": "node scripts/run-adaptive-check.mjs",
-    "test:attempt-history": "node scripts/run-attempt-history-check.mjs"
+    "test:attempt-history": "node scripts/run-attempt-history-check.mjs",
+    "test:training-flow": "node scripts/run-training-flow-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

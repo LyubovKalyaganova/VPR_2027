@@ -1,15 +1,17 @@
+import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, ProgressBar } from '../components/ui';
 import { localAttemptRecorder } from '../db';
+import { taskEngine, useTrainingStore } from '../store/useTrainingStore';
 import { taskRepository } from '../services/taskRepository';
 import {
   formatScoreCompact,
   getSessionSkillBreakdown,
+  getTopicTitleForSubject,
   masteryStatusLabel,
 } from '../services/progressService';
 import { useUserStore } from '../store/useUserStore';
-import { useTrainingStore } from '../store/useTrainingStore';
-import type { TrainingMode } from '../types';
+import type { SubjectId, TrainingMode } from '../types';
 import styles from './TrainResultPage.module.css';
 
 function formatDuration(durationMs: number): string {
@@ -47,18 +49,42 @@ function resultTitle(mode: TrainingMode | undefined, topicTitle?: string): strin
   }
 }
 
+function sessionSubject(session: { taskIds: string[] } | undefined): SubjectId | undefined {
+  if (!session?.taskIds[0]) {
+    return undefined;
+  }
+  return taskRepository.getById(session.taskIds[0])?.subject;
+}
+
 export function TrainResultPage() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const profile = useUserStore((state) => state.profile);
-  const summary = useTrainingStore((state) => (sessionId ? state.summaries[sessionId] : undefined));
+  const storedSummary = useTrainingStore((state) => (sessionId ? state.summaries[sessionId] : undefined));
   const session = useTrainingStore((state) => (sessionId ? state.sessions[sessionId] : undefined));
   const startMistakeReview = useTrainingStore((state) => state.startMistakeReview);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const summary = useMemo(() => {
+    if (storedSummary) {
+      return storedSummary;
+    }
+    if (session?.phase === 'completed') {
+      return taskEngine.getSummary(session);
+    }
+    return undefined;
+  }, [storedSummary, session]);
+
+  const subject = sessionSubject(session);
   const topicTask =
     session?.mode === 'topic' && session.taskIds[0]
       ? taskRepository.getById(session.taskIds[0])
       : undefined;
-  const title = resultTitle(session?.mode, topicTask?.topic);
+  const topicTitle =
+    topicTask?.topicId && subject
+      ? getTopicTitleForSubject(subject, topicTask.topicId)
+      : topicTask?.topic;
+  const title = resultTitle(session?.mode, topicTitle);
 
   const skillBreakdown =
     profile && sessionId
@@ -74,18 +100,51 @@ export function TrainResultPage() {
     (item) => item.mastery.status === 'mastered' || item.mastery.status === 'confident',
   );
 
-  if (!sessionId || !summary) {
+  if (!sessionId || !session) {
     return <Navigate to="/train" replace />;
+  }
+
+  if (!summary) {
+    return (
+      <div className={styles.page}>
+        <Card>
+          <h2>Результат недоступен</h2>
+          <p>Тренировка ещё не завершена или данные сессии устарели.</p>
+        </Card>
+        <Button fullWidth onClick={() => navigate('/train')}>
+          Вернуться к тренировке
+        </Button>
+      </div>
+    );
   }
 
   function handleMistakes() {
     if (!profile || !sessionId) {
       return;
     }
+    setNotice(null);
     const nextId = startMistakeReview(profile.userId, sessionId);
     if (nextId) {
       navigate(`/train/session/${nextId}`);
+      return;
     }
+    setNotice('Не удалось подобрать задания для разбора ошибок');
+  }
+
+  function handleContinue() {
+    if (subject) {
+      navigate(`/train?subject=${subject}`);
+      return;
+    }
+    navigate('/train');
+  }
+
+  function handleSubjectProgress() {
+    if (subject) {
+      navigate(`/subjects/${subject}`);
+      return;
+    }
+    navigate('/subjects');
   }
 
   return (
@@ -94,7 +153,7 @@ export function TrainResultPage() {
         <p className={styles.kicker}>{title}</p>
         <h2>{summary.percent}%</h2>
         <p>
-          Правильных: {summary.correct} / {summary.total}. Точность: {summary.percent}%.
+          Правильных: {summary.correct} / {summary.total}. Ошибок: {summary.incorrect}.
         </p>
       </Card>
 
@@ -168,12 +227,26 @@ export function TrainResultPage() {
         <p>{formatDuration(summary.durationMs)}</p>
       </Card>
 
+      {notice ? <p className={styles.notice}>{notice}</p> : null}
+
       <div className={styles.actions}>
         <Button fullWidth disabled={summary.incorrect === 0} onClick={handleMistakes}>
           Разобрать ошибки
         </Button>
-        <Button variant="secondary" fullWidth onClick={() => navigate('/train')}>
-          Вернуться к тренировке
+        {needReview.length > 0 ? (
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => navigate(subject ? `/train?subject=${subject}&mode=weak` : '/train')}
+          >
+            Повторить слабые навыки
+          </Button>
+        ) : null}
+        <Button variant="secondary" fullWidth onClick={handleContinue}>
+          Ещё одна тренировка
+        </Button>
+        <Button variant="secondary" fullWidth onClick={handleSubjectProgress}>
+          К прогрессу предмета
         </Button>
       </div>
     </div>

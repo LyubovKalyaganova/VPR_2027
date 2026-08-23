@@ -45,7 +45,7 @@ export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
   return [
     { id: 'quick', title: 'Быстрая тренировка', text: `5 заданий из ${bank} банка (weighted mix)` },
     { id: 'normal', title: 'Обычная тренировка', text: `До 10 заданий из ${bank} банка (weighted mix)` },
-    { id: 'random', title: 'Случайная тренировка', text: `Случайный weighted mix из ${bank} банка, до 10` },
+    { id: 'random', title: 'Случайная тренировка', text: `10 случайных заданий из ${bank} банка` },
     { id: 'weak', title: 'Слабые места', text: 'Тренировка по вашим слабым навыкам' },
     { id: 'topic', title: 'Повторение темы', text: 'Задания одной выбранной темы, до 10' },
     {
