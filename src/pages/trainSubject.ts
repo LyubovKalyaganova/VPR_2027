@@ -1,9 +1,11 @@
 import type { SubjectId, TrainingMode } from '../types';
 
-export type TrainSubject = 'mathematics' | 'russian';
+export type TrainSubject = 'mathematics' | 'russian' | 'world';
 
 export function parseTrainSubject(value: string | null | undefined): TrainSubject {
-  return value === 'russian' ? 'russian' : 'mathematics';
+  if (value === 'russian') return 'russian';
+  if (value === 'world') return 'world';
+  return 'mathematics';
 }
 
 export function trainSubjectToSubjectId(subject: TrainSubject): SubjectId {
@@ -11,7 +13,9 @@ export function trainSubjectToSubjectId(subject: TrainSubject): SubjectId {
 }
 
 export function subjectTitle(subject: TrainSubject): string {
-  return subject === 'russian' ? 'русскому языку' : 'математике';
+  if (subject === 'russian') return 'русскому языку';
+  if (subject === 'world') return 'окружающему миру';
+  return 'математике';
 }
 
 export type TrainModeConfig = {
@@ -23,7 +27,9 @@ export type TrainModeConfig = {
 };
 
 export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
-  const bank = subject === 'russian' ? 'русского' : 'математического';
+  const bank =
+    subject === 'russian' ? 'русского' : subject === 'world' ? 'окружающего мира' : 'математического';
+  const mathOnlyDisabled = subject === 'russian' || subject === 'world';
   return [
     { id: 'quick', title: 'Быстрая тренировка', text: `5 заданий из ${bank} банка (weighted mix)` },
     { id: 'normal', title: 'Обычная тренировка', text: `До 10 заданий из ${bank} банка (weighted mix)` },
@@ -34,21 +40,21 @@ export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
       id: 'mistakes',
       title: 'Работа над ошибками',
       text: 'Повторение заданий, где были ошибки',
-      disabled: subject === 'russian',
+      disabled: mathOnlyDisabled,
       mathOnly: true,
     },
     {
       id: 'review',
       title: 'Повторение',
       text: 'Задания, которые пора повторить',
-      disabled: subject === 'russian',
+      disabled: mathOnlyDisabled,
       mathOnly: true,
     },
     {
       id: 'daily',
       title: 'Ежедневный план',
       text: '5 заданий на сегодня',
-      disabled: subject === 'russian',
+      disabled: mathOnlyDisabled,
       mathOnly: true,
     },
     { id: 'exam', title: 'Реальная ВПР', text: 'Пробный вариант появится позже', disabled: true },

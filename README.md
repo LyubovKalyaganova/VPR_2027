@@ -2,56 +2,41 @@
 
 Образовательное приложение для подготовки учеников 4 класса к ВПР.
 
-Стек: React + TypeScript + Vite. Локальное хранение прогресса (без сервера). Android-оболочка через Capacitor подготовлена в репозитории.
+Стек: React + TypeScript + Vite. Локальное хранение прогресса (без сервера). Android-оболочка через Capacitor присутствует в репозитории.
 
 ---
 
 ## Текущее состояние (фактическое)
-
-Проект начинался как **Этап 1: Web-каркас** интерфейса. С тех пор значительно продвинут.
 
 ### Готово
 
 | Область | Статус |
 |--------|--------|
 | Web-приложение | Работает (`npm run dev` / `npm run build`) |
-| Математика M01–M35 | **FROZEN** — каталог закрыт, `MATH_SKILL_COUNT = 35` |
-| Генераторы M01–M35 | Есть для всех 35 навыков + self-check |
-| Математический training pool | Подключён: ~220 задач (10 статических + 210 сгенерированных) |
-| skillId в банке | Все 35 навыков представлены |
-| Weighted training | Подключён к реальным сессиям |
+| Математика M01–M35 | **FROZEN** |
+| Русский язык R01–R25 | **FROZEN** |
+| Окружающий мир W01–W25 | **FROZEN** — generators, pool, weighted selection |
+| Subject-aware training | mathematics / russian / world через `/train?subject=` |
 | Typecheck / build | Проходят |
 | Capacitor / `android/` | Присутствуют как часть архитектуры |
 
-**Цепочка математической тренировки (подтверждена):**
+**Цепочка тренировки (math / russian / world):**
 
 ```text
-MATH_SKILL_WEIGHTS
-  ? recommendSessionSkillMix
-  ? selectWeightedMathSessionTasks / adaptive cold-start
-  ? TaskEngine.createSession
-  ? задания ребёнку
+SKILL_WEIGHTS ? recommendSessionSkillMix ? generators ? TaskEngine ? session
 ```
 
-Проверенные режимы: `quick`, `normal`, `random`, `weak` (cold-start и с историей), `topic`.  
-Режим `exam` в UI пока отключён (заглушка).
-
-Особые навыки (без расширения каталога за M35):
-
-- **M29** — составные задачи + ход решения (`full` / `first` / `next` / `error` / `choose_solution`)
-- **M26** — одношаговые задачи, производительность; доли как EXTENSION
-- **M17** — 2D/пространственные тела, `spatial_read`, выбор схемы/чертежа
-
-**M36+ не создаются.** Математическую матрицу без отдельного решения не расширять.
+Режимы world: `quick` (5), `normal` (10), `random` (10), `weak`, `topic`.  
+Math-only: `review`, `daily`, `mistakes`. Режим `exam` — заглушка.
 
 ### Ещё не завершено
 
-- Русский язык, окружающий мир, литературное чтение, английский — предметные матрицы и генераторы
-- Полноценный exam/ВПР-режим по предметам
-- Сервер / облачная синхронизация (их нет и не требуется для текущего локального MVP)
-- Финальная сборка и полевое тестирование Android APK/AAB как «готового магазинного» приложения
+- Литературное чтение, английский — предметные матрицы и генераторы
+- Полноценный exam/ВПР-режим по предметам (таймер, оценка)
+- Сервер / облачная синхронизация (не требуется для локального MVP)
+- Android production/store readiness не объявлена
 
-Весь продукт целиком **не** считается завершённым: закрыт математический блок, остальные предметы — впереди.
+M36+, R26+, W26+ **не создаются** без отдельного решения.
 
 ---
 
@@ -59,12 +44,11 @@ MATH_SKILL_WEIGHTS
 
 | Файл | Назначение |
 |------|------------|
-| `VPR_4_CLASS_2027_PRODUCT_SPEC.md` | Продуктовое ТЗ (целевое видение) |
-| `CONTENT_MATRIX_MATH.md` | Замороженная матрица математики M01–M35 |
+| `VPR_4_CLASS_2027_PRODUCT_SPEC.md` | Продуктовое ТЗ |
+| `CONTENT_MATRIX_MATH.md` | Математика M01–M35 FROZEN |
+| `CONTENT_MATRIX_RUSSIAN.md` | Русский R01–R25 FROZEN |
+| `CONTENT_MATRIX_WORLD.md` | Окружающий мир W01–W25 FROZEN |
 | `MASTERY_SPEC.md` | Освоение навыков, интервалы повторения |
-| `M01_GENERATOR_SPEC.md` … `M35_GENERATOR_SPEC.md` | Контракты генераторов |
-
-Матрицы других предметов (`CONTENT_MATRIX_RUSSIAN.md` и т.д.) по ТЗ ещё предстоит создать.
 
 ---
 
@@ -80,17 +64,12 @@ npm run dev
 ```bash
 npm run typecheck
 npm run build
-npm run test:math-weights
 npm run test:math-training-selection
-npm run test:m01-generator   # … аналогично test:m02 … test:m35
+npm run test:russian-generators
+npm run test:russian-coverage
+npm run test:russian-training-selection
+npm run test:world-generators
+npm run test:world-coverage
+npm run test:world-training-selection
+npm run test:world-bank-audit
 ```
-
----
-
-## Структура (кратко)
-
-- `src/features/mathematics/` — генераторы, веса, selection
-- `src/services/` — `taskRepository`, adaptive selector, mastery, daily plan
-- `src/store/` — тренировочные сессии
-- `src/engine/` — TaskEngine, checkers
-- `android/`, `capacitor.config.ts` — оболочка Capacitor

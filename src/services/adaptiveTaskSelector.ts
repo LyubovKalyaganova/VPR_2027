@@ -1,8 +1,10 @@
 import type { Attempt, Difficulty, SkillMastery, SubjectId, Task } from '../types';
 import { MATH_SKILLS } from '../data/taxonomy/math';
 import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
+import { WORLD_SKILLS } from '../data/taxonomy/world';
 import { orderSkillIdsByTrainingWeight } from '../features/mathematics/mathTrainingSelection';
 import { orderRussianSkillIdsByTrainingWeight } from '../features/russian/russianTrainingSelection';
+import { orderWorldSkillIdsByTrainingWeight } from '../features/world/worldTrainingSelection';
 import { calculateSkillMastery, selectSkillAttempts } from './masteryService';
 import { getReviewState, type SkillReviewState } from './reviewScheduler';
 import { shuffle } from '../utils/shuffle';
@@ -172,9 +174,11 @@ export function selectAdaptiveTasks(input: AdaptiveTaskSelectorInput): Task[] {
   const defaultSkills =
     input.subject === 'russian'
       ? RUSSIAN_SKILLS
-      : input.subject === 'mathematics'
-        ? MATH_SKILLS
-        : MATH_SKILLS;
+      : input.subject === 'world'
+        ? WORLD_SKILLS
+        : input.subject === 'mathematics'
+          ? MATH_SKILLS
+          : MATH_SKILLS;
   const allowedSkillIds = new Set((input.skills ?? defaultSkills).map((skill) => skill.id));
   const poolTasks = input.tasks.filter(
     (task) =>
@@ -211,7 +215,15 @@ export function selectAdaptiveTasks(input: AdaptiveTaskSelectorInput): Task[] {
               (a, b) => (rank.get(a.skillId) ?? 999) - (rank.get(b.skillId) ?? 999),
             );
           })()
-        : shuffle(contexts)
+        : input.subject === 'world'
+          ? (() => {
+              const order = orderWorldSkillIdsByTrainingWeight(skillIds);
+              const rank = new Map(order.map((id, index) => [id, index]));
+              return [...contexts].sort(
+                (a, b) => (rank.get(a.skillId) ?? 999) - (rank.get(b.skillId) ?? 999),
+              );
+            })()
+          : shuffle(contexts)
     : [...contexts].sort((left, right) => compareContexts(left, right, nowIso));
 
   const selected: Task[] = [];

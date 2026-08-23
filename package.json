@@ -48,7 +48,11 @@
     "test:russian-generators": "node scripts/run-russian-generators-check.mjs",
     "test:russian-coverage": "node scripts/run-russian-coverage-check.mjs",
     "test:russian-training-selection": "node scripts/run-russian-training-selection-check.mjs",
-    "test:russian-bank-audit": "node scripts/run-russian-bank-audit-check.mjs"
+    "test:russian-bank-audit": "node scripts/run-russian-bank-audit-check.mjs",
+    "test:world-generators": "node scripts/run-world-generators-check.mjs",
+    "test:world-coverage": "node scripts/run-world-coverage-check.mjs",
+    "test:world-training-selection": "node scripts/run-world-training-selection-check.mjs",
+    "test:world-bank-audit": "node scripts/run-world-bank-audit-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

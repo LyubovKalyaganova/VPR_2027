@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../components/ui';
 import { MATH_TOPICS } from '../data/taxonomy/math';
 import { RUSSIAN_TOPICS } from '../data/taxonomy/russian';
+import { WORLD_TOPICS } from '../data/taxonomy/world';
 import { localAttemptRecorder } from '../db';
 import { taskRepository } from '../services/taskRepository';
 import { selectDueMathSkills, useTrainingStore } from '../store/useTrainingStore';
@@ -42,10 +43,13 @@ export function TrainPage() {
   const startDemo = useTrainingStore((state) => state.startDemo);
   const startMath = useTrainingStore((state) => state.startMath);
   const startRussian = useTrainingStore((state) => state.startRussian);
+  const startWorld = useTrainingStore((state) => state.startWorld);
   const startMathTopic = useTrainingStore((state) => state.startMathTopic);
   const startRussianTopic = useTrainingStore((state) => state.startRussianTopic);
+  const startWorldTopic = useTrainingStore((state) => state.startWorldTopic);
   const startWeak = useTrainingStore((state) => state.startWeak);
   const startRussianWeak = useTrainingStore((state) => state.startRussianWeak);
+  const startWorldWeak = useTrainingStore((state) => state.startWorldWeak);
   const startReview = useTrainingStore((state) => state.startReview);
   const startDaily = useTrainingStore((state) => state.startDaily);
   const startMistakes = useTrainingStore((state) => state.startMistakes);
@@ -54,7 +58,7 @@ export function TrainPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const modes = useMemo(() => modesForSubject(subject), [subject]);
-  const topics = subject === 'russian' ? RUSSIAN_TOPICS : MATH_TOPICS;
+  const topics = subject === 'russian' ? RUSSIAN_TOPICS : subject === 'world' ? WORLD_TOPICS : MATH_TOPICS;
 
   const selectedTopicCount = selectedTopicId ? taskCountByTopic(subject, selectedTopicId) : 0;
   const canStartTopic =
@@ -96,7 +100,9 @@ export function TrainPage() {
       const sessionId =
         subject === 'russian'
           ? startRussianTopic(profile.userId, selectedTopicId)
-          : startMathTopic(profile.userId, selectedTopicId);
+          : subject === 'world'
+            ? startWorldTopic(profile.userId, selectedTopicId)
+            : startMathTopic(profile.userId, selectedTopicId);
       if (!sessionId) {
         return;
       }
@@ -104,7 +110,12 @@ export function TrainPage() {
       return;
     }
     if (selected === 'weak') {
-      const sessionId = subject === 'russian' ? startRussianWeak(profile.userId) : startWeak(profile.userId);
+      const sessionId =
+        subject === 'russian'
+          ? startRussianWeak(profile.userId)
+          : subject === 'world'
+            ? startWorldWeak(profile.userId)
+            : startWeak(profile.userId);
       if (!sessionId) {
         setNotice('Пока нет заданий для тренировки слабых мест');
         return;
@@ -146,7 +157,11 @@ export function TrainPage() {
       return;
     }
     const sessionId =
-      subject === 'russian' ? startRussian(profile.userId, selected) : startMath(profile.userId, selected);
+      subject === 'russian'
+        ? startRussian(profile.userId, selected)
+        : subject === 'world'
+          ? startWorld(profile.userId, selected)
+          : startMath(profile.userId, selected);
     navigate(`/train/session/${sessionId}`);
   }
 

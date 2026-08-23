@@ -5,9 +5,11 @@ import { TaskEngine } from '../engine';
 import type { SessionSummary, TaskSession, UserAnswer } from '../engine';
 import { MATH_SKILLS, type MathSkill } from '../data/taxonomy/math';
 import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
+import { WORLD_SKILLS } from '../data/taxonomy/world';
 import { getDemoTasks } from '../data/questions/demoTasks';
 import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
 import { selectWeightedRussianSessionTasks } from '../features/russian/russianTrainingSelection';
+import { selectWeightedWorldSessionTasks } from '../features/world/worldTrainingSelection';
 import { selectAdaptiveTasks } from '../services/adaptiveTaskSelector';
 import { calculateSkillMastery } from '../services/masteryService';
 import { getReviewState } from '../services/reviewScheduler';
@@ -21,6 +23,19 @@ import { shuffle } from '../utils/shuffle';
  * quick / normal / random: взвешенный mix (MATH_SKILL_WEIGHTS → recommendSessionSkillMix → generators).
  * Не равномерный shuffle по всему банку.
  */
+function pickWorldTasks(mode: TrainingMode): Task[] {
+  switch (mode) {
+    case 'quick':
+      return selectWeightedWorldSessionTasks(5);
+    case 'normal':
+      return selectWeightedWorldSessionTasks(10);
+    case 'random':
+      return selectWeightedWorldSessionTasks(10, { seed: Date.now() >>> 0 });
+    default:
+      return taskRepository.getWorldTasks();
+  }
+}
+
 function pickRussianTasks(mode: TrainingMode): Task[] {
   switch (mode) {
     case 'quick':
@@ -168,10 +183,13 @@ interface TrainingState {
   startDemo: (userId: string) => string;
   startMath: (userId: string, mode?: TrainingMode) => string;
   startRussian: (userId: string, mode?: TrainingMode) => string;
+  startWorld: (userId: string, mode?: TrainingMode) => string;
   startMathTopic: (userId: string, topicId: string) => string | null;
   startRussianTopic: (userId: string, topicId: string) => string | null;
+  startWorldTopic: (userId: string, topicId: string) => string | null;
   startWeak: (userId: string) => string | null;
   startRussianWeak: (userId: string) => string | null;
+  startWorldWeak: (userId: string) => string | null;
   startReview: (userId: string) => string | null;
   startDaily: (userId: string) => string | null;
   startMistakes: (userId: string) => string | null;
@@ -222,6 +240,19 @@ export const useTrainingStore = create<TrainingState>()(
         }));
         return session.id;
       },
+      startWorld: (userId, mode = 'quick') => {
+        const tasks = pickWorldTasks(mode);
+        assertSubjectTasks(tasks, 'world');
+        const session = taskEngine.createSession({
+          userId,
+          mode,
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
       startWeak: (userId) => {
         const tasks = selectAdaptiveTasks({
           userId,
@@ -257,6 +288,29 @@ export const useTrainingStore = create<TrainingState>()(
           return null;
         }
         assertSubjectTasks(tasks, 'russian');
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'weak',
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startWorldWeak: (userId) => {
+        const tasks = selectAdaptiveTasks({
+          userId,
+          subject: 'world',
+          count: 5,
+          attempts: localAttemptRecorder.getAll(userId),
+          tasks: taskRepository.getBySubject('world'),
+          skills: WORLD_SKILLS,
+        });
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'world');
         const session = taskEngine.createSession({
           userId,
           mode: 'weak',
@@ -345,6 +399,22 @@ export const useTrainingStore = create<TrainingState>()(
           return null;
         }
         assertSubjectTasks(tasks, 'russian');
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'topic',
+          tasks: shuffle(tasks).slice(0, 10),
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startWorldTopic: (userId, topicId) => {
+        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'world');
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'world');
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',

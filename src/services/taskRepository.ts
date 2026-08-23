@@ -2,6 +2,7 @@ import { MATH_TASKS } from '../data/questions/mathTasks';
 import { getDemoTasks, getTaskById as getDemoTaskById } from '../data/questions/demoTasks';
 import { getGeneratedMathTaskById, getGeneratedMathTrainingPool } from './mathTrainingPool';
 import { getGeneratedRussianTaskById, getGeneratedRussianTrainingPool } from './russianTrainingPool';
+import { getGeneratedWorldTaskById, getGeneratedWorldTrainingPool } from './worldTrainingPool';
 import type { Difficulty, SourceType, SubjectId, Task, TaskType } from '../types';
 
 export type TaskFilter = {
@@ -30,18 +31,23 @@ function getRussianTasks(): Task[] {
   return getGeneratedRussianTrainingPool();
 }
 
+function getWorldTasks(): Task[] {
+  return getGeneratedWorldTrainingPool();
+}
+
 function getById(id: string): Task | undefined {
   return (
     getDemoTaskById(id) ??
     MATH_TASKS.find((task) => task.id === id) ??
     getGeneratedMathTaskById(id) ??
-    getGeneratedRussianTaskById(id)
+    getGeneratedRussianTaskById(id) ??
+    getGeneratedWorldTaskById(id)
   );
 }
 
 /** DEMO-банк и математический банк вместе. */
 function getAll(): Task[] {
-  return [...getDemoTasks(), ...getMathTasks(), ...getRussianTasks()];
+  return [...getDemoTasks(), ...getMathTasks(), ...getRussianTasks(), ...getWorldTasks()];
 }
 
 function find(filter: TaskFilter): Task[] {
@@ -97,6 +103,7 @@ export const taskRepository = {
   getDemoTasks,
   getMathTasks,
   getRussianTasks,
+  getWorldTasks,
   getStaticMathTasks,
   getBySubject,
   getAll,
