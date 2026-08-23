@@ -88,11 +88,15 @@ export function SubjectPage() {
             ))}
       </div>
 
-      {subjectId === 'mathematics' ? (
+      {subjectId === 'mathematics' || subjectId === 'russian' ? (
         <Button
           fullWidth
           onClick={() => {
             if (!profile) {
+              return;
+            }
+            if (subjectId === 'russian') {
+              navigate('/train?subject=russian');
               return;
             }
             const sessionId = startMath(profile.userId, 'quick');

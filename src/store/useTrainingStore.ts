@@ -4,21 +4,43 @@ import { localAttemptRecorder } from '../db';
 import { TaskEngine } from '../engine';
 import type { SessionSummary, TaskSession, UserAnswer } from '../engine';
 import { MATH_SKILLS, type MathSkill } from '../data/taxonomy/math';
+import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
 import { getDemoTasks } from '../data/questions/demoTasks';
 import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
+import { selectWeightedRussianSessionTasks } from '../features/russian/russianTrainingSelection';
 import { selectAdaptiveTasks } from '../services/adaptiveTaskSelector';
 import { calculateSkillMastery } from '../services/masteryService';
 import { getReviewState } from '../services/reviewScheduler';
 import { getDailyPlan } from '../services/dailyPlanRunner';
 import { getRemainingDailyTaskIds } from '../services/dailyPlanProgressService';
 import { taskRepository } from '../services/taskRepository';
-import type { Attempt, Task, TrainingMode } from '../types';
+import type { Attempt, Task, SubjectId, TrainingMode } from '../types';
 import { shuffle } from '../utils/shuffle';
 
 /**
  * quick / normal / random: взвешенный mix (MATH_SKILL_WEIGHTS → recommendSessionSkillMix → generators).
  * Не равномерный shuffle по всему банку.
  */
+function pickRussianTasks(mode: TrainingMode): Task[] {
+  switch (mode) {
+    case 'quick':
+      return selectWeightedRussianSessionTasks(5);
+    case 'normal':
+      return selectWeightedRussianSessionTasks(10);
+    case 'random':
+      return selectWeightedRussianSessionTasks(10, { seed: Date.now() >>> 0 });
+    default:
+      return taskRepository.getRussianTasks();
+  }
+}
+
+function assertSubjectTasks(tasks: Task[], subject: SubjectId): void {
+  const wrong = tasks.find((task) => task.subject !== subject);
+  if (wrong) {
+    throw new Error(`Сессия ${subject}: найдено задание другого предмета (${wrong.id}, ${wrong.subject})`);
+  }
+}
+
 function pickMathTasks(mode: TrainingMode): Task[] {
   switch (mode) {
     case 'quick':
@@ -145,8 +167,11 @@ interface TrainingState {
   summaries: Record<string, SessionSummary>;
   startDemo: (userId: string) => string;
   startMath: (userId: string, mode?: TrainingMode) => string;
+  startRussian: (userId: string, mode?: TrainingMode) => string;
   startMathTopic: (userId: string, topicId: string) => string | null;
+  startRussianTopic: (userId: string, topicId: string) => string | null;
   startWeak: (userId: string) => string | null;
+  startRussianWeak: (userId: string) => string | null;
   startReview: (userId: string) => string | null;
   startDaily: (userId: string) => string | null;
   startMistakes: (userId: string) => string | null;
@@ -184,6 +209,19 @@ export const useTrainingStore = create<TrainingState>()(
         }));
         return session.id;
       },
+      startRussian: (userId, mode = 'quick') => {
+        const tasks = pickRussianTasks(mode);
+        assertSubjectTasks(tasks, 'russian');
+        const session = taskEngine.createSession({
+          userId,
+          mode,
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
       startWeak: (userId) => {
         const tasks = selectAdaptiveTasks({
           userId,
@@ -196,6 +234,29 @@ export const useTrainingStore = create<TrainingState>()(
         if (tasks.length === 0) {
           return null;
         }
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'weak',
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startRussianWeak: (userId) => {
+        const tasks = selectAdaptiveTasks({
+          userId,
+          subject: 'russian',
+          count: 5,
+          attempts: localAttemptRecorder.getAll(userId),
+          tasks: taskRepository.getBySubject('russian'),
+          skills: RUSSIAN_SKILLS,
+        });
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'russian');
         const session = taskEngine.createSession({
           userId,
           mode: 'weak',
@@ -268,6 +329,22 @@ export const useTrainingStore = create<TrainingState>()(
         if (tasks.length === 0) {
           return null;
         }
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'topic',
+          tasks: shuffle(tasks).slice(0, 10),
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startRussianTopic: (userId, topicId) => {
+        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'russian');
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'russian');
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',

@@ -8,6 +8,7 @@ import { NumberAnswer } from './answers/NumberAnswer';
 import { OrderingAnswer } from './answers/OrderingAnswer';
 import { ShortAnswer } from './answers/ShortAnswer';
 import { SingleChoiceAnswer } from './answers/SingleChoiceAnswer';
+import { AudioAnswer } from './answers/AudioAnswer';
 
 interface AnswerAreaProps {
   task: Task;
@@ -81,6 +82,16 @@ export function AnswerArea({ task, presentation, answer, disabled, onChange }: A
     case 'fillBlank':
       return (
         <FillBlankAnswer value={typeof answer === 'string' ? answer : ''} disabled={disabled} onChange={onChange} />
+      );
+    case 'audio':
+      return (
+        <AudioAnswer
+          task={task}
+          options={presentation.options ?? task.answers ?? []}
+          value={answer}
+          disabled={disabled}
+          onChange={onChange}
+        />
       );
     case 'imageTask': {
       const options = presentation.options ?? task.answers ?? [];

@@ -1,6 +1,7 @@
 import type { Task, TaskType } from '../../types';
 import type { UserAnswer } from '../session';
 import { classificationChecker } from './classification';
+import { audioChecker } from './audio';
 import { fillBlankChecker } from './fillBlank';
 import { imageTaskChecker } from './imageTask';
 import { matchingChecker } from './matching';
@@ -20,6 +21,7 @@ const CHECKERS: Partial<Record<TaskType, AnswerChecker>> = {
   ordering: orderingChecker,
   classification: classificationChecker,
   fillBlank: fillBlankChecker,
+  audio: audioChecker,
   imageTask: imageTaskChecker,
 };
 
@@ -32,6 +34,7 @@ export function checkTask(task: Task, answer: UserAnswer): boolean {
 }
 
 export {
+  audioChecker,
   classificationChecker,
   fillBlankChecker,
   imageTaskChecker,

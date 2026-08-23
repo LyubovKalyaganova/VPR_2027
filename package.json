@@ -44,7 +44,11 @@
     "test:m32-generator": "node scripts/run-m32-generator-check.mjs",
     "test:m33-generator": "node scripts/run-m33-generator-check.mjs",
     "test:m34-generator": "node scripts/run-m34-generator-check.mjs",
-    "test:m35-generator": "node scripts/run-m35-generator-check.mjs"
+    "test:m35-generator": "node scripts/run-m35-generator-check.mjs",
+    "test:russian-generators": "node scripts/run-russian-generators-check.mjs",
+    "test:russian-coverage": "node scripts/run-russian-coverage-check.mjs",
+    "test:russian-training-selection": "node scripts/run-russian-training-selection-check.mjs",
+    "test:russian-bank-audit": "node scripts/run-russian-bank-audit-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

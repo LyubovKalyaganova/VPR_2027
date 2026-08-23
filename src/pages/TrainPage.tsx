@@ -1,20 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../components/ui';
 import { MATH_TOPICS } from '../data/taxonomy/math';
+import { RUSSIAN_TOPICS } from '../data/taxonomy/russian';
 import { localAttemptRecorder } from '../db';
 import { taskRepository } from '../services/taskRepository';
 import { selectDueMathSkills, useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
 import type { TrainingMode } from '../types';
+import { modesForSubject, parseTrainSubject, subjectTitle, type TrainSubject } from './trainSubject';
 import styles from './TrainPage.module.css';
 
-function isMathStartMode(value: TrainingMode): value is 'quick' | 'normal' | 'random' {
+function isWeightedStartMode(value: TrainingMode): value is 'quick' | 'normal' | 'random' {
   return value === 'quick' || value === 'normal' || value === 'random';
 }
 
-function mathTaskCountByTopic(topicId: string): number {
-  return taskRepository.getByTopic(topicId).filter((task) => task.subject === 'mathematics').length;
+function taskCountByTopic(subject: TrainSubject, topicId: string): number {
+  return taskRepository.getByTopic(topicId).filter((task) => task.subject === subject).length;
 }
 
 function taskCountLabel(count: number): string {
@@ -32,25 +34,18 @@ function taskCountLabel(count: number): string {
   return `${count} заданий`;
 }
 
-const MODES: Array<{ id: TrainingMode; title: string; text: string; disabled?: boolean }> = [
-  { id: 'quick', title: 'Быстрая тренировка', text: '5 заданий из учебного математического банка' },
-  { id: 'normal', title: 'Обычная тренировка', text: 'До 10 заданий из учебного математического банка' },
-  { id: 'mistakes', title: 'Работа над ошибками', text: 'Повторение заданий, где были ошибки' },
-  { id: 'topic', title: 'Повторение темы', text: 'Задания одной выбранной темы, до 10' },
-  { id: 'weak', title: 'Слабые места', text: 'Тренировка по вашим слабым местам' },
-  { id: 'review', title: 'Повторение', text: 'Задания, которые пора повторить' },
-  { id: 'daily', title: 'Ежедневный план', text: '5 заданий на сегодня: слабые места, повторение и закрепление' },
-  { id: 'random', title: 'Случайная тренировка', text: 'Случайные задания из математического банка, до 10' },
-  { id: 'exam', title: 'Реальная ВПР', text: 'Пробный вариант появится позже', disabled: true },
-];
-
 export function TrainPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const subject = parseTrainSubject(searchParams.get('subject'));
   const profile = useUserStore((state) => state.profile);
   const startDemo = useTrainingStore((state) => state.startDemo);
   const startMath = useTrainingStore((state) => state.startMath);
+  const startRussian = useTrainingStore((state) => state.startRussian);
   const startMathTopic = useTrainingStore((state) => state.startMathTopic);
+  const startRussianTopic = useTrainingStore((state) => state.startRussianTopic);
   const startWeak = useTrainingStore((state) => state.startWeak);
+  const startRussianWeak = useTrainingStore((state) => state.startRussianWeak);
   const startReview = useTrainingStore((state) => state.startReview);
   const startDaily = useTrainingStore((state) => state.startDaily);
   const startMistakes = useTrainingStore((state) => state.startMistakes);
@@ -58,14 +53,17 @@ export function TrainPage() {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const selectedTopicCount = selectedTopicId ? mathTaskCountByTopic(selectedTopicId) : 0;
+  const modes = useMemo(() => modesForSubject(subject), [subject]);
+  const topics = subject === 'russian' ? RUSSIAN_TOPICS : MATH_TOPICS;
+
+  const selectedTopicCount = selectedTopicId ? taskCountByTopic(subject, selectedTopicId) : 0;
   const canStartTopic =
     Boolean(profile) && selected === 'topic' && selectedTopicId !== null && selectedTopicCount > 0;
-  const canStartMath = Boolean(profile) && isMathStartMode(selected);
+  const canStartWeighted = Boolean(profile) && isWeightedStartMode(selected);
   const canStartWeak = Boolean(profile) && selected === 'weak';
-  const canStartReview = Boolean(profile) && selected === 'review';
-  const canStartDaily = Boolean(profile) && selected === 'daily';
-  const canStartMistakes = Boolean(profile) && selected === 'mistakes';
+  const canStartReview = Boolean(profile) && selected === 'review' && subject === 'mathematics';
+  const canStartDaily = Boolean(profile) && selected === 'daily' && subject === 'mathematics';
+  const canStartMistakes = Boolean(profile) && selected === 'mistakes' && subject === 'mathematics';
   const canStart =
     selected === 'topic'
       ? canStartTopic
@@ -77,7 +75,7 @@ export function TrainPage() {
             ? canStartDaily
             : selected === 'mistakes'
               ? canStartMistakes
-              : canStartMath;
+              : canStartWeighted;
 
   function handleSelectMode(modeId: TrainingMode) {
     setSelected(modeId);
@@ -95,7 +93,10 @@ export function TrainPage() {
       if (!selectedTopicId || selectedTopicCount === 0) {
         return;
       }
-      const sessionId = startMathTopic(profile.userId, selectedTopicId);
+      const sessionId =
+        subject === 'russian'
+          ? startRussianTopic(profile.userId, selectedTopicId)
+          : startMathTopic(profile.userId, selectedTopicId);
       if (!sessionId) {
         return;
       }
@@ -103,8 +104,9 @@ export function TrainPage() {
       return;
     }
     if (selected === 'weak') {
-      const sessionId = startWeak(profile.userId);
+      const sessionId = subject === 'russian' ? startRussianWeak(profile.userId) : startWeak(profile.userId);
       if (!sessionId) {
+        setNotice('Пока нет заданий для тренировки слабых мест');
         return;
       }
       navigate(`/train/session/${sessionId}`);
@@ -140,10 +142,11 @@ export function TrainPage() {
       navigate(`/train/session/${sessionId}`);
       return;
     }
-    if (!isMathStartMode(selected)) {
+    if (!isWeightedStartMode(selected)) {
       return;
     }
-    const sessionId = startMath(profile.userId, selected);
+    const sessionId =
+      subject === 'russian' ? startRussian(profile.userId, selected) : startMath(profile.userId, selected);
     navigate(`/train/session/${sessionId}`);
   }
 
@@ -158,11 +161,11 @@ export function TrainPage() {
   return (
     <div className={styles.page}>
       <p className={styles.lead}>
-        Сейчас доступна учебная тренировка по математике. Задания используются для разработки и проверки приложения.
+        Учебная тренировка по {subjectTitle(subject)}. Задания используют weighted mix по навыкам ВПР-2027.
       </p>
 
       <div className={styles.list}>
-        {MODES.map((mode) => (
+        {modes.map((mode) => (
           <button
             key={mode.id}
             type="button"
@@ -178,8 +181,8 @@ export function TrainPage() {
 
       {selected === 'topic' ? (
         <div className={styles.topics}>
-          {MATH_TOPICS.map((topic) => {
-            const count = mathTaskCountByTopic(topic.id);
+          {topics.map((topic) => {
+            const count = taskCountByTopic(subject, topic.id);
             const empty = count === 0;
             return (
               <button
@@ -208,15 +211,15 @@ export function TrainPage() {
               ? 'Повторение'
               : selected === 'daily'
                 ? 'Ежедневный план'
-                : 'Начать тренировку по математике'}
+                : `Начать тренировку по ${subjectTitle(subject)}`}
         </h2>
         <p>
           {selected === 'topic'
             ? 'Выбери тему со свободными учебными заданиями. Это не официальный вариант ВПР.'
             : selected === 'review'
-              ? 'Задания, которые пора повторить'
+              ? 'Задания, которые пора повторить (пока только математика)'
               : selected === 'daily'
-                ? '5 заданий на сегодня: слабые места, повторение и закрепление'
+                ? '5 заданий на сегодня (пока только математика)'
                 : 'Это учебный набор, а не официальные задания ВПР.'}
         </p>
       </Card>

@@ -23,6 +23,8 @@ export function isAnswerReady(task: Task, answer: UserAnswer): boolean {
       }
       return typeof answer === 'string' && answer.trim().length > 0;
     }
+    case 'audio':
+      return typeof answer === 'string' && answer.trim().length > 0;
     case 'multipleChoice':
       return Array.isArray(answer) && answer.length > 0;
     case 'ordering': {
