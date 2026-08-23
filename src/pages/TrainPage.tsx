@@ -91,8 +91,11 @@ export function TrainPage() {
   const canStartReview = Boolean(profile) && selected === 'review' && subject === 'mathematics';
   const canStartDaily = Boolean(profile) && selected === 'daily' && subject === 'mathematics';
   const canStartMistakes = Boolean(profile) && selected === 'mistakes' && subject === 'mathematics';
+  const canStartExam = Boolean(profile) && selected === 'exam';
   const canStart =
-    selected === 'topic'
+    selected === 'exam'
+      ? canStartExam
+      : selected === 'topic'
       ? canStartTopic
       : selected === 'weak'
         ? canStartWeak
@@ -114,6 +117,10 @@ export function TrainPage() {
 
   function handleStart() {
     if (!profile) {
+      return;
+    }
+    if (selected === 'exam') {
+      navigate(`/exam/${subject}/start`);
       return;
     }
     if (selected === 'topic') {

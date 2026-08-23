@@ -69,6 +69,6 @@ export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
       disabled: mathOnlyDisabled,
       mathOnly: true,
     },
-    { id: 'exam', title: 'Реальная ВПР', text: 'Пробный вариант появится позже', disabled: true },
+    { id: 'exam', title: 'Реальная ВПР', text: 'Полный экзаменационный вариант по структуре ВПР-2027' },
   ];
 }

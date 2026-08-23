@@ -2,6 +2,9 @@ import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { HomePage } from '../pages/HomePage';
+import { ExamResultPage } from '../pages/ExamResultPage';
+import { ExamSessionPage } from '../pages/ExamSessionPage';
+import { ExamStartPage } from '../pages/ExamStartPage';
 import { OnboardingPage } from '../pages/OnboardingPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { ProgressPage } from '../pages/ProgressPage';
@@ -53,6 +56,9 @@ export function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/subjects" element={<SubjectsPage />} />
         <Route path="/subjects/:subjectId" element={<SubjectPage />} />
+        <Route path="/exam/:subjectId/start" element={<ExamStartPage />} />
+        <Route path="/exam/session/:sessionId" element={<ExamSessionPage />} />
+        <Route path="/exam/result/:sessionId" element={<ExamResultPage />} />
         <Route path="/train" element={<TrainPage />} />
         <Route path="/train/session/:sessionId" element={<TrainSessionPage />} />
         <Route path="/train/result/:sessionId" element={<TrainResultPage />} />

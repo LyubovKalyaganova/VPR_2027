@@ -65,7 +65,13 @@
     "test:mastery": "node scripts/run-mastery-check.mjs",
     "test:adaptive": "node scripts/run-adaptive-check.mjs",
     "test:attempt-history": "node scripts/run-attempt-history-check.mjs",
-    "test:training-flow": "node scripts/run-training-flow-check.mjs"
+    "test:training-flow": "node scripts/run-training-flow-check.mjs",
+    "test:exam-blueprints": "node scripts/run-exam-check.mjs reportExamBlueprintsSelfChecks",
+    "test:exam-selection": "node scripts/run-exam-check.mjs reportExamSelectionSelfChecks",
+    "test:exam-scoring": "node scripts/run-exam-check.mjs reportExamScoringSelfChecks",
+    "test:exam-timer": "node scripts/run-exam-check.mjs reportExamTimerSelfChecks",
+    "test:exam-persistence": "node scripts/run-exam-check.mjs reportExamPersistenceSelfChecks",
+    "test:exam-flow": "node scripts/run-exam-check.mjs reportExamFlowSelfChecks"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

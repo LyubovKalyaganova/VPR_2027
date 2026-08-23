@@ -21,6 +21,15 @@ function getTitle(pathname: string, subjectId?: string): {
     const subject = SUBJECTS.find((item) => item.id === subjectId);
     return { title: subject?.title ?? 'Предмет', showBack: true, hideHeader: false, hideNav: false };
   }
+  if (pathname.startsWith('/exam/session')) {
+    return { title: 'ВПР', showBack: false, hideHeader: false, hideNav: true };
+  }
+  if (pathname.startsWith('/exam/result')) {
+    return { title: 'Результат ВПР', showBack: true, hideHeader: false, hideNav: true, backTo: '/subjects' };
+  }
+  if (pathname.startsWith('/exam/') && pathname.endsWith('/start')) {
+    return { title: 'ВПР', showBack: true, hideHeader: false, hideNav: false, backTo: '/subjects' };
+  }
   if (pathname.startsWith('/train/session')) {
     return { title: 'Задание', showBack: true, hideHeader: false, hideNav: true, backTo: '/train' };
   }

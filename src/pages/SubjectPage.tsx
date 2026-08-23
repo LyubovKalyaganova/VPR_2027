@@ -149,6 +149,15 @@ export function SubjectPage() {
           Тренировать слабые места
         </Button>
       ) : null}
+      <Button
+        variant="secondary"
+        fullWidth
+        onClick={() => {
+          navigate(`/exam/${subjectId}/start`);
+        }}
+      >
+        Пройти ВПР
+      </Button>
     </div>
   );
 }
