@@ -3,6 +3,10 @@ import { getDemoTasks, getTaskById as getDemoTaskById } from '../data/questions/
 import { getGeneratedMathTaskById, getGeneratedMathTrainingPool } from './mathTrainingPool';
 import { getGeneratedRussianTaskById, getGeneratedRussianTrainingPool } from './russianTrainingPool';
 import { getGeneratedWorldTaskById, getGeneratedWorldTrainingPool } from './worldTrainingPool';
+import {
+  getGeneratedLiteraryReadingTaskById,
+  getGeneratedLiteraryReadingTrainingPool,
+} from './literaryReadingTrainingPool';
 import type { Difficulty, SourceType, SubjectId, Task, TaskType } from '../types';
 
 export type TaskFilter = {
@@ -35,19 +39,30 @@ function getWorldTasks(): Task[] {
   return getGeneratedWorldTrainingPool();
 }
 
+function getLiteraryReadingTasks(): Task[] {
+  return getGeneratedLiteraryReadingTrainingPool();
+}
+
 function getById(id: string): Task | undefined {
   return (
     getDemoTaskById(id) ??
     MATH_TASKS.find((task) => task.id === id) ??
     getGeneratedMathTaskById(id) ??
     getGeneratedRussianTaskById(id) ??
-    getGeneratedWorldTaskById(id)
+    getGeneratedWorldTaskById(id) ??
+    getGeneratedLiteraryReadingTaskById(id)
   );
 }
 
-/** DEMO-банк и математический банк вместе. */
+/** DEMO-банк и предметные банки вместе. */
 function getAll(): Task[] {
-  return [...getDemoTasks(), ...getMathTasks(), ...getRussianTasks(), ...getWorldTasks()];
+  return [
+    ...getDemoTasks(),
+    ...getMathTasks(),
+    ...getRussianTasks(),
+    ...getWorldTasks(),
+    ...getLiteraryReadingTasks(),
+  ];
 }
 
 function find(filter: TaskFilter): Task[] {
@@ -104,6 +119,7 @@ export const taskRepository = {
   getMathTasks,
   getRussianTasks,
   getWorldTasks,
+  getLiteraryReadingTasks,
   getStaticMathTasks,
   getBySubject,
   getAll,

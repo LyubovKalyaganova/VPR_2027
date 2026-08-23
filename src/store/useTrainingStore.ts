@@ -6,10 +6,12 @@ import type { SessionSummary, TaskSession, UserAnswer } from '../engine';
 import { MATH_SKILLS, type MathSkill } from '../data/taxonomy/math';
 import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
 import { WORLD_SKILLS } from '../data/taxonomy/world';
+import { READING_SKILLS } from '../data/taxonomy/literaryReading';
 import { getDemoTasks } from '../data/questions/demoTasks';
 import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
 import { selectWeightedRussianSessionTasks } from '../features/russian/russianTrainingSelection';
 import { selectWeightedWorldSessionTasks } from '../features/world/worldTrainingSelection';
+import { selectWeightedReadingSessionTasks } from '../features/reading/literaryReadingTrainingSelection';
 import { selectAdaptiveTasks } from '../services/adaptiveTaskSelector';
 import { calculateSkillMastery } from '../services/masteryService';
 import { getReviewState } from '../services/reviewScheduler';
@@ -33,6 +35,19 @@ function pickWorldTasks(mode: TrainingMode): Task[] {
       return selectWeightedWorldSessionTasks(10, { seed: Date.now() >>> 0 });
     default:
       return taskRepository.getWorldTasks();
+  }
+}
+
+function pickReadingTasks(mode: TrainingMode): Task[] {
+  switch (mode) {
+    case 'quick':
+      return selectWeightedReadingSessionTasks(5);
+    case 'normal':
+      return selectWeightedReadingSessionTasks(10);
+    case 'random':
+      return selectWeightedReadingSessionTasks(10, { seed: Date.now() >>> 0 });
+    default:
+      return taskRepository.getLiteraryReadingTasks();
   }
 }
 
@@ -184,12 +199,15 @@ interface TrainingState {
   startMath: (userId: string, mode?: TrainingMode) => string;
   startRussian: (userId: string, mode?: TrainingMode) => string;
   startWorld: (userId: string, mode?: TrainingMode) => string;
+  startLiteraryReading: (userId: string, mode?: TrainingMode) => string;
   startMathTopic: (userId: string, topicId: string) => string | null;
   startRussianTopic: (userId: string, topicId: string) => string | null;
   startWorldTopic: (userId: string, topicId: string) => string | null;
+  startLiteraryReadingTopic: (userId: string, topicId: string) => string | null;
   startWeak: (userId: string) => string | null;
   startRussianWeak: (userId: string) => string | null;
   startWorldWeak: (userId: string) => string | null;
+  startLiteraryReadingWeak: (userId: string) => string | null;
   startReview: (userId: string) => string | null;
   startDaily: (userId: string) => string | null;
   startMistakes: (userId: string) => string | null;
@@ -243,6 +261,19 @@ export const useTrainingStore = create<TrainingState>()(
       startWorld: (userId, mode = 'quick') => {
         const tasks = pickWorldTasks(mode);
         assertSubjectTasks(tasks, 'world');
+        const session = taskEngine.createSession({
+          userId,
+          mode,
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startLiteraryReading: (userId, mode = 'quick') => {
+        const tasks = pickReadingTasks(mode);
+        assertSubjectTasks(tasks, 'reading');
         const session = taskEngine.createSession({
           userId,
           mode,
@@ -311,6 +342,29 @@ export const useTrainingStore = create<TrainingState>()(
           return null;
         }
         assertSubjectTasks(tasks, 'world');
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'weak',
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startLiteraryReadingWeak: (userId) => {
+        const tasks = selectAdaptiveTasks({
+          userId,
+          subject: 'reading',
+          count: 5,
+          attempts: localAttemptRecorder.getAll(userId),
+          tasks: taskRepository.getBySubject('reading'),
+          skills: READING_SKILLS,
+        });
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'reading');
         const session = taskEngine.createSession({
           userId,
           mode: 'weak',
@@ -415,6 +469,22 @@ export const useTrainingStore = create<TrainingState>()(
           return null;
         }
         assertSubjectTasks(tasks, 'world');
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'topic',
+          tasks: shuffle(tasks).slice(0, 10),
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startLiteraryReadingTopic: (userId, topicId) => {
+        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'reading');
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'reading');
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',

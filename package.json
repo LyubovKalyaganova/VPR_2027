@@ -52,7 +52,11 @@
     "test:world-generators": "node scripts/run-world-generators-check.mjs",
     "test:world-coverage": "node scripts/run-world-coverage-check.mjs",
     "test:world-training-selection": "node scripts/run-world-training-selection-check.mjs",
-    "test:world-bank-audit": "node scripts/run-world-bank-audit-check.mjs"
+    "test:world-bank-audit": "node scripts/run-world-bank-audit-check.mjs",
+    "test:literary-reading-generators": "node scripts/run-literary-reading-generators-check.mjs",
+    "test:literary-reading-coverage": "node scripts/run-literary-reading-coverage-check.mjs",
+    "test:literary-reading-training-selection": "node scripts/run-literary-reading-training-selection-check.mjs",
+    "test:literary-reading-bank-audit": "node scripts/run-literary-reading-bank-audit-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
