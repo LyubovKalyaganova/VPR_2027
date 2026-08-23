@@ -27,7 +27,7 @@ function formatDuration(durationMs: number): string {
 function resultTitle(mode: TrainingMode | undefined, topicTitle?: string): string {
   switch (mode) {
     case 'demo':
-      return 'DEMO-тренировка';
+      return 'Пробная тренировка';
     case 'daily':
       return 'Ежедневный план';
     case 'weak':

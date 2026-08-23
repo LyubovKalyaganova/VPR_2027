@@ -71,6 +71,16 @@ function skillTitleById(skillId: string | undefined): string | undefined {
   return MATH_SKILLS.find((skill) => skill.id === skillId)?.title;
 }
 
+function averageSubjectScore(scores: Record<string, number | null>): number | null {
+  const values = SUBJECTS.map((subject) => scores[subject.id]).filter(
+    (value): value is number => value !== null,
+  );
+  if (values.length === 0) {
+    return null;
+  }
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
 function countPlanSources(plan: DailyPlan) {
   let weak = 0;
   let review = 0;
@@ -196,6 +206,8 @@ export function HomePage() {
 
   const recommendation = daily?.recommendation;
   const recommendationSkillTitle = skillTitleById(recommendation?.skillId);
+  const overallScore = averageSubjectScore(progress.subjectScores);
+  const readinessScore = overallScore ?? progress.mathScore;
 
   function handleStartPlan() {
     if (!userId || !canStart) {
@@ -240,15 +252,15 @@ export function HomePage() {
     <div className={styles.page}>
       <p className={styles.kicker}>ВПР 4 класс 2027</p>
       <h1 className={styles.hello}>Привет, {name}!</h1>
-      <p className={styles.lead}>Вот как выглядит твоя подготовка сейчас.</p>
+      <p className={styles.lead}>Подготовка к ВПР по пяти предметам: выбирай предмет, тренируйся или проходи экзамен.</p>
 
       <Card className={styles.hero}>
-        <RingProgress value={progress.mathScore} />
+        <RingProgress value={readinessScore} />
         <div className={styles.heroText}>
           <h2>Твоя готовность</h2>
           <p>{getReadinessCaption(progress)}</p>
-          <Link to="/train">
-            <Button fullWidth>Продолжить подготовку</Button>
+          <Link to="/subjects">
+            <Button fullWidth>Выбрать предмет</Button>
           </Link>
         </div>
       </Card>
@@ -308,7 +320,7 @@ export function HomePage() {
               </p>
             ) : (
               <>
-                <p className={styles.hint}>{total} заданий</p>
+                <p className={styles.hint}>{total} заданий на сегодня · только математика</p>
                 <div className={styles.planProgress}>
                   <p className={styles.planProgressTitle}>
                     {completed} из {total} выполнено
@@ -318,13 +330,6 @@ export function HomePage() {
                 </div>
               </>
             )}
-            <ul className={styles.planStats}>
-              <li>Всего — {daily.todaySummary.total}</li>
-              <li>Выполнено — {daily.todaySummary.completed}</li>
-              <li>Осталось — {daily.todaySummary.remaining}</li>
-              <li>Правильно — {daily.todaySummary.correct}</li>
-              <li>Ошибки — {daily.todaySummary.incorrect}</li>
-            </ul>
             <ul className={styles.planCats}>
               <li>
                 <span className={styles.planCount}>{daily.sources.weak}</span>

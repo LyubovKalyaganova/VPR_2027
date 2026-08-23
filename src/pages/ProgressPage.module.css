@@ -273,3 +273,29 @@
   margin: 0 0 0 13px;
   background: var(--color-line);
 }
+
+.emptyState h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.emptyState p {
+  margin: 0 0 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.emptyLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sectionLead {
+  margin: 0 0 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}

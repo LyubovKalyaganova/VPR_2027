@@ -447,7 +447,7 @@ export function getReadinessCaption(progress: ChildProgress): string {
   const withData = SUBJECT_IDS.filter((id) => progress.subjectScores[id] !== null);
   if (withData.length === 0) {
     return progress.stats.totalAttempts === 0
-      ? 'Начните тренировку, чтобы появился прогресс.'
+      ? 'Начни тренировку, чтобы появился прогресс.'
       : 'Нет данных по навыкам предметов.';
   }
   if (withData.length === 1 && withData[0] === 'mathematics') {
@@ -462,7 +462,7 @@ export function getHomeRecommendation(progress: ChildProgress): string {
     return `Стоит потренировать: ${weak.skill.title}.`;
   }
   if (progress.stats.totalAttempts === 0) {
-    return 'Начните тренировку, чтобы появился прогресс.';
+    return 'Начни тренировку, чтобы появился прогресс.';
   }
   return 'Можно продолжить тренировку.';
 }

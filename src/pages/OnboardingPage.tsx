@@ -135,17 +135,10 @@ export function OnboardingPage() {
 
       {step === 4 ? (
         <section className={styles.block}>
-          <h1>Можно начать с диагностики</h1>
+          <h1>Готово — можно начинать!</h1>
           <p className={styles.lead}>
-            Короткая проверка поможет понять стартовую точку. Это не оценка «хорошо» или «плохо», а начало
-            подготовки.
+            Выбери предмет на главном экране и начни с быстрой тренировки. Прогресс сохранится автоматически.
           </p>
-          <Card>
-            <p className={styles.note}>
-              Движок заданий появится на следующем этапе. Сейчас можно войти в приложение и посмотреть каркас
-              экранов.
-            </p>
-          </Card>
         </section>
       ) : null}
 
@@ -156,11 +149,11 @@ export function OnboardingPage() {
           </Button>
         ) : (
           <>
-            <Button fullWidth onClick={() => finish(true)}>
-              К диагностике
+            <Button fullWidth onClick={() => finish(false)}>
+              Начать подготовку
             </Button>
-            <Button fullWidth variant="secondary" onClick={() => finish(false)}>
-              Начать позже
+            <Button fullWidth variant="secondary" onClick={() => finish(true)}>
+              Сразу к тренировке
             </Button>
           </>
         )}

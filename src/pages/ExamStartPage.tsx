@@ -1,4 +1,5 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
 import { Button, Card } from '../components/ui';
 import { getExamBlueprint } from '../services/exam/examBlueprints';
 import { canBuildExam } from '../services/exam/examTaskSelector';
@@ -18,6 +19,7 @@ export function ExamStartPage() {
   const createSession = useExamStore((state) => state.createSession);
   const startSession = useExamStore((state) => state.startSession);
   const getActiveForSubject = useExamStore((state) => state.getActiveForSubject);
+  const [error, setError] = useState<string | null>(null);
 
   if (!subjectId || !isSubjectId(subjectId)) {
     return <Navigate to="/subjects" replace />;
@@ -29,7 +31,7 @@ export function ExamStartPage() {
       <div className={styles.page}>
         <Card>
           <h2>ВПР недоступна</h2>
-          <p className={styles.note}>Для этого предмета нет конфигурации экзамена.</p>
+          <p className={styles.note}>Для этого предмета пока нет варианта ВПР.</p>
         </Card>
         <Button fullWidth onClick={() => navigate('/subjects')}>
           К предметам
@@ -46,12 +48,14 @@ export function ExamStartPage() {
     if (!profile || !buildable) {
       return;
     }
+    setError(null);
     if (active?.status === 'in_progress') {
       navigate(`/exam/session/${active.id}`);
       return;
     }
     const sessionId = createSession(profile.userId, subjectId as SubjectId);
     if (!sessionId) {
+      setError('Не удалось начать ВПР. Попробуй позже или выбери другой предмет.');
       return;
     }
     startSession(sessionId);
@@ -97,13 +101,19 @@ export function ExamStartPage() {
 
       {!buildable ? (
         <Card padding="sm">
-          <p className={styles.warn}>Сейчас недостаточно заданий в банке для полного варианта ВПР.</p>
+          <p className={styles.warn}>Сейчас недостаточно заданий для полного варианта ВПР.</p>
         </Card>
       ) : null}
 
       <Card padding="sm">
         <p className={styles.note}>После начала запустится таймер. Можно вернуться к предыдущим заданиям.</p>
       </Card>
+
+      {error ? (
+        <Card padding="sm">
+          <p className={styles.warn}>{error}</p>
+        </Card>
+      ) : null}
 
       <div className={styles.actions}>
         {active?.status === 'in_progress' ? (

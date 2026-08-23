@@ -22,6 +22,14 @@ export function subjectTitle(subject: TrainSubject): string {
   return 'математике';
 }
 
+export function subjectLabel(subject: TrainSubject): string {
+  if (subject === 'russian') return 'Русский язык';
+  if (subject === 'world') return 'Окружающий мир';
+  if (subject === 'reading') return 'Литературное чтение';
+  if (subject === 'english') return 'Английский язык';
+  return 'Математика';
+}
+
 export type TrainModeConfig = {
   id: TrainingMode;
   title: string;
@@ -31,22 +39,34 @@ export type TrainModeConfig = {
 };
 
 export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
-  const bank =
+  const subjectGenitive =
     subject === 'russian'
-      ? 'русского'
+      ? 'русского языка'
       : subject === 'world'
         ? 'окружающего мира'
         : subject === 'reading'
           ? 'литературного чтения'
           : subject === 'english'
-            ? 'английского'
-            : 'математического';
+            ? 'английского языка'
+            : 'математики';
   const mathOnlyDisabled = subject !== 'mathematics';
   return [
-    { id: 'quick', title: 'Быстрая тренировка', text: `5 заданий из ${bank} банка (weighted mix)` },
-    { id: 'normal', title: 'Обычная тренировка', text: `До 10 заданий из ${bank} банка (weighted mix)` },
-    { id: 'random', title: 'Случайная тренировка', text: `10 случайных заданий из ${bank} банка` },
-    { id: 'weak', title: 'Слабые места', text: 'Тренировка по вашим слабым навыкам' },
+    {
+      id: 'quick',
+      title: 'Быстрая тренировка',
+      text: `5 заданий по ${subjectGenitive} с умным подбором`,
+    },
+    {
+      id: 'normal',
+      title: 'Обычная тренировка',
+      text: `До 10 заданий по ${subjectGenitive} с умным подбором`,
+    },
+    {
+      id: 'random',
+      title: 'Случайная тренировка',
+      text: `10 случайных заданий по ${subjectGenitive}`,
+    },
+    { id: 'weak', title: 'Слабые места', text: 'Тренировка по твоим слабым навыкам' },
     { id: 'topic', title: 'Повторение темы', text: 'Задания одной выбранной темы, до 10' },
     {
       id: 'mistakes',
@@ -69,6 +89,18 @@ export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
       disabled: mathOnlyDisabled,
       mathOnly: true,
     },
-    { id: 'exam', title: 'Реальная ВПР', text: 'Полный экзаменационный вариант по структуре ВПР-2027' },
+    {
+      id: 'exam',
+      title: 'Пройти ВПР',
+      text: 'Полный экзаменационный вариант по структуре ВПР-2027',
+    },
   ];
+}
+
+export function trainingModesForSubject(subject: TrainSubject): TrainModeConfig[] {
+  return modesForSubject(subject).filter((mode) => mode.id !== 'exam');
+}
+
+export function examModeForSubject(subject: TrainSubject): TrainModeConfig {
+  return modesForSubject(subject).find((mode) => mode.id === 'exam')!;
 }

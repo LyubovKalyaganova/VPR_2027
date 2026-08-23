@@ -64,7 +64,7 @@ export function SubjectPage() {
       {weakSkills.length === 0 && skills.every((item) => item.mastery.status === 'new') ? (
         <Card padding="sm">
           <p className={styles.emptyHint}>
-            Пока нет истории тренировок по этому предмету. Начните с быстрой или обычной тренировки.
+            Ты ещё не выполнял задания по этому предмету. Начни тренировку, чтобы увидеть прогресс.
           </p>
         </Card>
       ) : null}
@@ -105,7 +105,7 @@ export function SubjectPage() {
                   <span>{topic.title}</span>
                   <b>{formatScoreCompact(topic.score)}</b>
                 </div>
-                <ProgressBar value={topic.score ?? 0} color={subject.accent} ariaLabel={topic.topicId} />
+                <ProgressBar value={topic.score ?? 0} color={subject.accent} ariaLabel={topic.title} />
               </div>
             ))}
           </div>

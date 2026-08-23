@@ -44,6 +44,7 @@ export function TrainSessionPage() {
       subjectTitle={subject?.title ?? 'Тренировка'}
       current={session.currentIndex + 1}
       total={session.taskIds.length}
+      showDemoBadge={session.mode === 'demo'}
     >
       <div className={styles.body} data-task-type={task.taskType} data-task-id={task.id}>
         <TaskPrompt task={task} />

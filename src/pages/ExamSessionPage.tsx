@@ -176,7 +176,7 @@ export function ExamSessionPage() {
         onConfirm={handleFinishConfirm}
       >
         {unanswered > 0 ? (
-          <p>Вы ответили не на все задания ({unanswered} без ответа). Завершить ВПР?</p>
+          <p>Ты ответил не на все задания ({unanswered} без ответа). Завершить ВПР?</p>
         ) : (
           <p>Все задания заполнены. Завершить ВПР?</p>
         )}

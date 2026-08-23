@@ -71,7 +71,9 @@
     "test:exam-scoring": "node scripts/run-exam-check.mjs reportExamScoringSelfChecks",
     "test:exam-timer": "node scripts/run-exam-check.mjs reportExamTimerSelfChecks",
     "test:exam-persistence": "node scripts/run-exam-check.mjs reportExamPersistenceSelfChecks",
-    "test:exam-flow": "node scripts/run-exam-check.mjs reportExamFlowSelfChecks"
+    "test:exam-flow": "node scripts/run-exam-check.mjs reportExamFlowSelfChecks",
+    "test:ux-routes": "node scripts/run-ux-check.mjs reportStage17UxSelfChecks",
+    "test:subject-isolation": "node scripts/run-ux-check.mjs reportStage17SubjectIsolationSelfChecks"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

@@ -28,7 +28,13 @@ function getTitle(pathname: string, subjectId?: string): {
     return { title: 'Результат ВПР', showBack: true, hideHeader: false, hideNav: true, backTo: '/subjects' };
   }
   if (pathname.startsWith('/exam/') && pathname.endsWith('/start')) {
-    return { title: 'ВПР', showBack: true, hideHeader: false, hideNav: false, backTo: '/subjects' };
+    return {
+      title: 'ВПР',
+      showBack: true,
+      hideHeader: false,
+      hideNav: false,
+      backTo: subjectId ? `/subjects/${subjectId}` : '/subjects',
+    };
   }
   if (pathname.startsWith('/train/session')) {
     return { title: 'Задание', showBack: true, hideHeader: false, hideNav: true, backTo: '/train' };

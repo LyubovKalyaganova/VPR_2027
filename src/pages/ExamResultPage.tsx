@@ -1,7 +1,6 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card } from '../components/ui';
 import { getExamBlueprint } from '../services/exam/examBlueprints';
-import { taskRepository } from '../services/taskRepository';
 import { useExamStore } from '../store/useExamStore';
 import styles from './ExamResultPage.module.css';
 
@@ -84,7 +83,6 @@ export function ExamResultPage() {
         <h3>Разбор</h3>
         <div className={styles.breakdown}>
           {result.slotResults.map((slot, index) => {
-            const task = taskRepository.getById(slot.taskId);
             const rowClass = !slot.answered
               ? styles.rowSkip
               : slot.isCorrect
@@ -96,7 +94,6 @@ export function ExamResultPage() {
                 <span>
                   №{slot.slotId || index + 1} {mark}{' '}
                   {slot.isCorrect ? 'правильно' : slot.answered ? 'ошибка' : 'нет ответа'}
-                  {task?.skill ? ` · ${task.skill}` : ''}
                 </span>
                 <span>
                   {slot.earnedPoints}/{slot.points}
@@ -107,7 +104,7 @@ export function ExamResultPage() {
         </div>
         {result.slotResults.some((slot) => slot.trainingAnalog) ? (
           <p className={styles.note}>
-            Задания с training analog проверены по цифровому аналогу, не экспертной проверкой.
+            Некоторые задания проверены по учебному аналогу — на реальном ВПР проверка может отличаться.
           </p>
         ) : null}
       </Card>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { SUBJECTS } from '../data/demo/subjects';
 import { Button, Card } from '../components/ui';
 import { MATH_TOPICS } from '../data/taxonomy/math';
 import { RUSSIAN_TOPICS } from '../data/taxonomy/russian';
@@ -11,7 +12,14 @@ import { taskRepository } from '../services/taskRepository';
 import { selectDueMathSkills, useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
 import type { TrainingMode } from '../types';
-import { modesForSubject, parseTrainSubject, subjectTitle, type TrainSubject } from './trainSubject';
+import {
+  examModeForSubject,
+  parseTrainSubject,
+  subjectLabel,
+  subjectTitle,
+  trainingModesForSubject,
+  type TrainSubject,
+} from './trainSubject';
 import styles from './TrainPage.module.css';
 
 function isWeightedStartMode(value: TrainingMode): value is 'quick' | 'normal' | 'random' {
@@ -37,9 +45,11 @@ function taskCountLabel(count: number): string {
   return `${count} заданий`;
 }
 
+const TRAIN_SUBJECTS: TrainSubject[] = ['mathematics', 'russian', 'world', 'reading', 'english'];
+
 export function TrainPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const subject = parseTrainSubject(searchParams.get('subject'));
   const initialMode = searchParams.get('mode');
   const profile = useUserStore((state) => state.profile);
@@ -66,12 +76,16 @@ export function TrainPage() {
     if (initialMode === 'weak' || initialMode === 'topic' || initialMode === 'random') {
       return initialMode;
     }
+    if (initialMode === 'exam') {
+      return 'exam';
+    }
     return 'quick';
   });
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const modes = useMemo(() => modesForSubject(subject), [subject]);
+  const trainingModes = useMemo(() => trainingModesForSubject(subject), [subject]);
+  const examMode = useMemo(() => examModeForSubject(subject), [subject]);
   const topics =
     subject === 'russian'
       ? RUSSIAN_TOPICS
@@ -96,16 +110,23 @@ export function TrainPage() {
     selected === 'exam'
       ? canStartExam
       : selected === 'topic'
-      ? canStartTopic
-      : selected === 'weak'
-        ? canStartWeak
-        : selected === 'review'
-          ? canStartReview
-          : selected === 'daily'
-            ? canStartDaily
-            : selected === 'mistakes'
-              ? canStartMistakes
-              : canStartWeighted;
+        ? canStartTopic
+        : selected === 'weak'
+          ? canStartWeak
+          : selected === 'review'
+            ? canStartReview
+            : selected === 'daily'
+              ? canStartDaily
+              : selected === 'mistakes'
+                ? canStartMistakes
+                : canStartWeighted;
+
+  function handleSubjectChange(next: TrainSubject) {
+    setNotice(null);
+    setSelectedTopicId(null);
+    setSelected('quick');
+    setSearchParams({ subject: next });
+  }
 
   function handleSelectMode(modeId: TrainingMode) {
     setSelected(modeId);
@@ -138,6 +159,7 @@ export function TrainPage() {
                 ? startEnglishTopic(profile.userId, selectedTopicId)
                 : startMathTopic(profile.userId, selectedTopicId);
       if (!sessionId) {
+        setNotice('Не удалось подобрать задания по этой теме');
         return;
       }
       navigate(`/train/session/${sessionId}`);
@@ -204,6 +226,10 @@ export function TrainPage() {
             : subject === 'english'
               ? startEnglish(profile.userId, selected)
               : startMath(profile.userId, selected);
+    if (!sessionId) {
+      setNotice('Не удалось подобрать задания. Попробуй другой режим.');
+      return;
+    }
     navigate(`/train/session/${sessionId}`);
   }
 
@@ -215,15 +241,52 @@ export function TrainPage() {
     navigate(`/train/session/${sessionId}`);
   }
 
+  const cardTitle =
+    selected === 'exam'
+      ? 'Экзаменационный режим'
+      : selected === 'topic'
+        ? 'Повторение темы'
+        : selected === 'review'
+          ? 'Повторение'
+          : selected === 'daily'
+            ? 'Ежедневный план'
+            : `Тренировка по ${subjectTitle(subject)}`;
+
+  const cardText =
+    selected === 'exam'
+      ? 'Отдельный режим ВПР: таймер, без подсказок и без мгновенной проверки. Это не обычная тренировка.'
+      : selected === 'topic'
+        ? 'Выбери тему. Это учебные задания, а не официальный вариант ВПР.'
+        : selected === 'review'
+          ? 'Задания, которые пора повторить (пока только математика)'
+          : selected === 'daily'
+            ? '5 заданий на сегодня (пока только математика)'
+            : 'Учебный набор заданий с подсказками и проверкой ответа.';
+
   return (
     <div className={styles.page}>
-      <p className={styles.lead}>
-        Учебная тренировка по {subjectTitle(subject)}. Режимы quick/normal — weighted mix; random — случайный
-        выбор из банка предмета.
-      </p>
+      <p className={styles.lead}>Выбери предмет и режим. Тренировка и ВПР — разные режимы.</p>
 
+      <section className={styles.subjectPicker} aria-label="Выбор предмета">
+        {TRAIN_SUBJECTS.map((item) => {
+          const meta = SUBJECTS.find((entry) => entry.id === item);
+          return (
+            <button
+              key={item}
+              type="button"
+              className={`${styles.subjectChip} ${subject === item ? styles.subjectChipActive : ''}`}
+              onClick={() => handleSubjectChange(item)}
+            >
+              <span className={styles.subjectDot} style={{ background: meta?.accent }} />
+              {subjectLabel(item)}
+            </button>
+          );
+        })}
+      </section>
+
+      <h2 className={styles.sectionTitle}>Тренировка</h2>
       <div className={styles.list}>
-        {modes.map((mode) => (
+        {trainingModes.map((mode) => (
           <button
             key={mode.id}
             type="button"
@@ -261,34 +324,30 @@ export function TrainPage() {
         </div>
       ) : null}
 
+      <section className={styles.examSection}>
+        <h2 className={styles.sectionTitle}>ВПР</h2>
+        <button
+          type="button"
+          className={`${styles.examMode} ${selected === 'exam' ? styles.examSelected : ''}`}
+          onClick={() => handleSelectMode('exam')}
+        >
+          <strong>{examMode.title}</strong>
+          <span>{examMode.text}</span>
+        </button>
+      </section>
+
       <Card>
-        <h2>
-          {selected === 'topic'
-            ? 'Повторение темы'
-            : selected === 'review'
-              ? 'Повторение'
-              : selected === 'daily'
-                ? 'Ежедневный план'
-                : `Начать тренировку по ${subjectTitle(subject)}`}
-        </h2>
-        <p>
-          {selected === 'topic'
-            ? 'Выбери тему со свободными учебными заданиями. Это не официальный вариант ВПР.'
-            : selected === 'review'
-              ? 'Задания, которые пора повторить (пока только математика)'
-              : selected === 'daily'
-                ? '5 заданий на сегодня (пока только математика)'
-                : 'Это учебный набор, а не официальные задания ВПР.'}
-        </p>
+        <h2>{cardTitle}</h2>
+        <p>{cardText}</p>
       </Card>
 
-      {notice ? <p>{notice}</p> : null}
+      {notice ? <p className={styles.notice}>{notice}</p> : null}
 
       <Button fullWidth onClick={handleStart} disabled={!canStart}>
-        Начать тренировку
+        {selected === 'exam' ? 'Перейти к ВПР' : 'Начать тренировку'}
       </Button>
-      <Button variant="secondary" fullWidth onClick={handleStartDemo}>
-        DEMO-тренировка
+      <Button variant="ghost" fullWidth onClick={handleStartDemo}>
+        Пробная тренировка
       </Button>
     </div>
   );

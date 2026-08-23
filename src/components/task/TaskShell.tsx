@@ -6,16 +6,17 @@ interface TaskShellProps {
   subjectTitle: string;
   current: number;
   total: number;
+  showDemoBadge?: boolean;
   children: ReactNode;
 }
 
-export function TaskShell({ subjectTitle, current, total, children }: TaskShellProps) {
+export function TaskShell({ subjectTitle, current, total, showDemoBadge = false, children }: TaskShellProps) {
   const percent = total === 0 ? 0 : (current / total) * 100;
 
   return (
     <div className={styles.shell} data-task-progress={`${current}-of-${total}`}>
-      <div className={styles.meta}>
-        <span className={styles.demo}>DEMO</span>
+      <div className={`${styles.meta} ${showDemoBadge ? '' : styles.metaNoBadge}`}>
+        {showDemoBadge ? <span className={styles.demo}>Проба</span> : null}
         <span className={styles.subject}>{subjectTitle}</span>
         <strong>
           {current} из {total}

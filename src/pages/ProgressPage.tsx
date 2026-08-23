@@ -8,11 +8,13 @@ import {
   getChildProgress,
   getProgressLevelIndex,
   getReadinessCaption,
+  getSubjectSkillProgress,
+  getWeakSkillProgress,
 } from '../services/progressService';
 import { getSkillMasteryView } from '../services/skillMasteryView';
 import { getLearningPathView, type LearningPathMarker } from '../services/learningPathView';
 import { useUserStore } from '../store/useUserStore';
-import type { MasteryStatus } from '../types';
+import type { MasteryStatus, SubjectId } from '../types';
 import { Card, ProgressBar } from '../components/ui';
 import styles from './ProgressPage.module.css';
 
@@ -44,88 +46,48 @@ const PATH_CLASS: Record<LearningPathMarker, string> = {
   ahead: styles.pathAhead,
 };
 
+const SUBJECT_IDS: SubjectId[] = ['mathematics', 'russian', 'world', 'reading', 'english'];
+
+function averageSubjectScore(scores: Record<SubjectId, number | null>): number | null {
+  const values = SUBJECT_IDS.map((id) => scores[id]).filter((value): value is number => value !== null);
+  if (values.length === 0) {
+    return null;
+  }
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
 export function ProgressPage() {
   const profile = useUserStore((state) => state.profile);
-  const progress = getChildProgress(
-    profile ? localAttemptRecorder.getAll(profile.userId) : [],
-    profile?.userId ?? '',
-  );
+  const userId = profile?.userId ?? '';
+  const attempts = profile ? localAttemptRecorder.getAll(userId) : [];
+  const progress = getChildProgress(attempts, userId);
+  const overallScore = averageSubjectScore(progress.subjectScores) ?? progress.mathScore;
   const skillSections = getSkillMasteryView(progress.mathSkills);
   const learningPath = getLearningPathView(progress.mathSkills);
   const levelIndex = getProgressLevelIndex(progress);
+  const hasAttempts = progress.stats.totalAttempts > 0;
+  const hasMathData = progress.mathSkills.some((item) => item.mastery.status !== 'new');
 
   return (
     <div className={styles.page}>
+      {!hasAttempts ? (
+        <Card padding="sm" className={styles.emptyState}>
+          <h2>Ты ещё не тренировался</h2>
+          <p>Начни с любого предмета — здесь появятся твои результаты, сильные и слабые навыки.</p>
+          <Link to="/subjects" className={styles.emptyLink}>
+            Выбрать предмет
+          </Link>
+        </Card>
+      ) : null}
+
       <Card className={styles.overall}>
         <div>
           <p className={styles.kicker}>Общая готовность</p>
-          <h2>{formatScoreLabel(progress.mathScore)}</h2>
+          <h2>{formatScoreLabel(overallScore)}</h2>
           <p>{getReadinessCaption(progress)}</p>
         </div>
-        <ProgressBar value={progress.mathScore ?? 0} ariaLabel="Общая готовность" />
+        <ProgressBar value={overallScore ?? 0} ariaLabel="Общая готовность" />
       </Card>
-
-      <section>
-        <p className={styles.kicker}>Ваш путь по математике</p>
-        <h2>Путь обучения</h2>
-        <p>
-          Уже освоенные темы остаются позади, текущая тема находится в центре пути, а новые темы ждут
-          впереди.
-        </p>
-        <div className={styles.path}>
-          {learningPath.sections.map((section, index) => (
-            <div key={section.sectionId} className={styles.pathStep}>
-              <div className={`${styles.pathNode} ${PATH_CLASS[section.marker]}`}>
-                <span className={styles.pathMark} aria-hidden="true">
-                  {PATH_MARK[section.marker]}
-                </span>
-                <strong>{section.title}</strong>
-              </div>
-              {section.marker === 'current'
-                ? section.skills.map((item) =>
-                    item.isCurrent ? (
-                      <Card key={item.skillId} padding="sm" className={styles.pathCurrent}>
-                        <div className={styles.skillHead}>
-                          <strong>{item.title}</strong>
-                          <b>{item.scoreLabel}</b>
-                        </div>
-                        <div className={styles.skillMeta}>
-                          <span className={`${styles.status} ${STATUS_CLASS[item.status]}`}>
-                            {item.statusLabel}
-                          </span>
-                          <span className={styles.here}>Вы сейчас здесь</span>
-                        </div>
-                      </Card>
-                    ) : (
-                      <div key={item.skillId} className={styles.pathSkill}>
-                        <span>{item.title}</span>
-                        <span>{item.statusLabel}</span>
-                      </div>
-                    ),
-                  )
-                : null}
-              {index < learningPath.sections.length - 1 ? (
-                <div className={styles.pathLine} aria-hidden="true" />
-              ) : null}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2>Карта прогресса</h2>
-        <div className={styles.levels}>
-          {PROGRESS_LEVELS.map((level, index) => (
-            <div
-              key={level.id}
-              className={`${styles.level} ${index <= levelIndex ? styles.levelOn : ''}`}
-            >
-              <span>{index + 1}</span>
-              <strong>{level.title}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <section>
         <h2>По предметам</h2>
@@ -149,60 +111,156 @@ export function ProgressPage() {
       </section>
 
       <section>
-        <h2>Слабые темы</h2>
+        <h2>Слабые навыки</h2>
         <div className={styles.weak}>
           {progress.weakSkills.length === 0 ? (
             <Card padding="sm" className={styles.weakItem}>
               <div>
-                <strong>Пока нет слабых тем</strong>
-                <span>Они появятся после тренировки по математике</span>
+                <strong>Пока нет слабых навыков</strong>
+                <span>Они появятся после нескольких тренировок</span>
               </div>
             </Card>
           ) : (
-            progress.weakSkills.map((item) => (
-              <Card key={item.skill.id} padding="sm" className={styles.weakItem}>
-                <div>
-                  <strong>{item.skill.title}</strong>
-                  <span>Рекомендуем потренировать эту тему</span>
-                </div>
-                <b>{formatScoreCompact(item.mastery.masteryScore)}</b>
-              </Card>
-            ))
+            progress.weakSkills.slice(0, 8).map((item) => {
+              const subject = SUBJECTS.find((entry) => entry.id === item.skill.subjectId);
+              return (
+                <Card key={item.skill.id} padding="sm" className={styles.weakItem}>
+                  <div>
+                    <strong>{item.skill.title}</strong>
+                    <span>
+                      {subject?.title ?? 'Предмет'} · рекомендуем потренировать
+                    </span>
+                  </div>
+                  <b>{formatScoreCompact(item.mastery.masteryScore)}</b>
+                </Card>
+              );
+            })
           )}
         </div>
       </section>
 
-      <section>
-        <h2>Навыки</h2>
-        <div className={styles.skills}>
-          {skillSections.map((section) => (
-            <div key={section.sectionId} className={styles.skillGroup}>
-              <h3>{section.title}</h3>
-              {section.skills.map((item) => (
-                <Card key={item.skillId} padding="sm" className={styles.skillCard}>
-                  <div className={styles.skillHead}>
-                    <strong>{item.title}</strong>
-                    <b>{item.scoreLabel}</b>
-                  </div>
-                  <ProgressBar
-                    value={item.progressValue}
-                    color={BAR_COLOR[item.status]}
-                    ariaLabel={item.title}
-                  />
-                  <div className={styles.skillMeta}>
-                    <span className={`${styles.status} ${STATUS_CLASS[item.status]}`}>
-                      {item.statusLabel}
-                    </span>
-                    {item.attemptsCount > 0 ? (
-                      <span className={styles.attempts}>{item.attemptsCount} заданий</span>
-                    ) : null}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ))}
-        </div>
-      </section>
+      {hasMathData ? (
+        <section>
+          <p className={styles.kicker}>Путь по математике</p>
+          <h2>Что уже освоено</h2>
+          <p className={styles.sectionLead}>
+            Освоенные темы остаются позади, текущая — в центре, новые ждут впереди.
+          </p>
+          <div className={styles.path}>
+            {learningPath.sections.map((section, index) => (
+              <div key={section.sectionId} className={styles.pathStep}>
+                <div className={`${styles.pathNode} ${PATH_CLASS[section.marker]}`}>
+                  <span className={styles.pathMark} aria-hidden="true">
+                    {PATH_MARK[section.marker]}
+                  </span>
+                  <strong>{section.title}</strong>
+                </div>
+                {section.marker === 'current'
+                  ? section.skills.map((item) =>
+                      item.isCurrent ? (
+                        <Card key={item.skillId} padding="sm" className={styles.pathCurrent}>
+                          <div className={styles.skillHead}>
+                            <strong>{item.title}</strong>
+                            <b>{item.scoreLabel}</b>
+                          </div>
+                          <div className={styles.skillMeta}>
+                            <span className={`${styles.status} ${STATUS_CLASS[item.status]}`}>
+                              {item.statusLabel}
+                            </span>
+                            <span className={styles.here}>Ты сейчас здесь</span>
+                          </div>
+                        </Card>
+                      ) : (
+                        <div key={item.skillId} className={styles.pathSkill}>
+                          <span>{item.title}</span>
+                          <span>{item.statusLabel}</span>
+                        </div>
+                      ),
+                    )
+                  : null}
+                {index < learningPath.sections.length - 1 ? (
+                  <div className={styles.pathLine} aria-hidden="true" />
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {hasMathData && levelIndex >= 0 ? (
+        <section>
+          <h2>Карта прогресса</h2>
+          <div className={styles.levels}>
+            {PROGRESS_LEVELS.map((level, index) => (
+              <div
+                key={level.id}
+                className={`${styles.level} ${index <= levelIndex ? styles.levelOn : ''}`}
+              >
+                <span>{index + 1}</span>
+                <strong>{level.title}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {hasMathData ? (
+        <section>
+          <h2>Навыки · математика</h2>
+          <div className={styles.skills}>
+            {skillSections.map((section) => (
+              <div key={section.sectionId} className={styles.skillGroup}>
+                <h3>{section.title}</h3>
+                {section.skills.map((item) => (
+                  <Card key={item.skillId} padding="sm" className={styles.skillCard}>
+                    <div className={styles.skillHead}>
+                      <strong>{item.title}</strong>
+                      <b>{item.scoreLabel}</b>
+                    </div>
+                    <ProgressBar
+                      value={item.progressValue}
+                      color={BAR_COLOR[item.status]}
+                      ariaLabel={item.title}
+                    />
+                    <div className={styles.skillMeta}>
+                      <span className={`${styles.status} ${STATUS_CLASS[item.status]}`}>
+                        {item.statusLabel}
+                      </span>
+                      {item.attemptsCount > 0 ? (
+                        <span className={styles.attempts}>{item.attemptsCount} заданий</span>
+                      ) : null}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {SUBJECT_IDS.filter((id) => id !== 'mathematics').map((subjectId) => {
+        const skills = getSubjectSkillProgress(attempts, userId, subjectId);
+        const practiced = skills.some((item) => item.mastery.status !== 'new');
+        if (!practiced) {
+          return null;
+        }
+        const weak = getWeakSkillProgress(skills).slice(0, 3);
+        const subject = SUBJECTS.find((entry) => entry.id === subjectId);
+        return (
+          <section key={subjectId}>
+            <h2>Навыки · {subject?.title ?? subjectId}</h2>
+            {weak.length > 0 ? (
+              <Card padding="sm" className={styles.weakItem}>
+                <p className={styles.sectionLead}>Стоит повторить: {weak.map((item) => item.skill.title).join(', ')}</p>
+              </Card>
+            ) : (
+              <Card padding="sm" className={styles.weakItem}>
+                <p className={styles.sectionLead}>Слабых навыков пока нет — так держать!</p>
+              </Card>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }
