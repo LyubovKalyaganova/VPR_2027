@@ -273,5 +273,3 @@ export function reportProgressSelfChecks(): void {
     throw new Error(`progress self-check failed:\n- ${failures.join('\n- ')}`);
   }
 }
-
-reportProgressSelfChecks();

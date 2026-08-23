@@ -125,7 +125,6 @@ export function runLearningPathViewSelfChecks(): string[] {
   const demoExtra: SkillProgress = {
     skill: {
       id: 'demo-fake-skill',
-      code: 'M03',
       subjectId: 'mathematics',
       sectionId: 'math.calculation',
       topicId: 'math.calculation.multi_digit',

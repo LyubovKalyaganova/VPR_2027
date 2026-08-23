@@ -1,6 +1,12 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { Button, Card } from '../components/ui';
+import { Button, Card, ProgressBar } from '../components/ui';
+import { localAttemptRecorder } from '../db';
 import { taskRepository } from '../services/taskRepository';
+import {
+  formatScoreCompact,
+  getSessionSkillBreakdown,
+  masteryStatusLabel,
+} from '../services/progressService';
 import { useUserStore } from '../store/useUserStore';
 import { useTrainingStore } from '../store/useTrainingStore';
 import type { TrainingMode } from '../types';
@@ -48,10 +54,25 @@ export function TrainResultPage() {
   const summary = useTrainingStore((state) => (sessionId ? state.summaries[sessionId] : undefined));
   const session = useTrainingStore((state) => (sessionId ? state.sessions[sessionId] : undefined));
   const startMistakeReview = useTrainingStore((state) => state.startMistakeReview);
-  const topicTask = session?.mode === 'topic' && session.taskIds[0]
-    ? taskRepository.getById(session.taskIds[0])
-    : undefined;
+  const topicTask =
+    session?.mode === 'topic' && session.taskIds[0]
+      ? taskRepository.getById(session.taskIds[0])
+      : undefined;
   const title = resultTitle(session?.mode, topicTask?.topic);
+
+  const skillBreakdown =
+    profile && sessionId
+      ? getSessionSkillBreakdown(localAttemptRecorder.getAll(profile.userId), sessionId, profile.userId)
+      : [];
+  const needReview = skillBreakdown.filter(
+    (item) =>
+      item.mastery.status === 'not_mastered' ||
+      item.mastery.status === 'developing' ||
+      item.correct < item.total,
+  );
+  const strong = skillBreakdown.filter(
+    (item) => item.mastery.status === 'mastered' || item.mastery.status === 'confident',
+  );
 
   if (!sessionId || !summary) {
     return <Navigate to="/train" replace />;
@@ -72,7 +93,9 @@ export function TrainResultPage() {
       <Card className={styles.hero}>
         <p className={styles.kicker}>{title}</p>
         <h2>{summary.percent}%</h2>
-        <p>Так пока выглядит результат занятия. Это учебный набор, не вариант ВПР.</p>
+        <p>
+          Правильных: {summary.correct} / {summary.total}. Точность: {summary.percent}%.
+        </p>
       </Card>
 
       <div className={styles.stats}>
@@ -93,6 +116,52 @@ export function TrainResultPage() {
           <span>Подсказок</span>
         </Card>
       </div>
+
+      {skillBreakdown.length > 0 ? (
+        <Card>
+          <h3>Навыки</h3>
+          <div className={styles.skillList}>
+            {skillBreakdown.map((item) => (
+              <div key={item.skillId} className={styles.skillRow}>
+                <div className={styles.skillHead}>
+                  <span>
+                    {item.title} ({item.correct}/{item.total})
+                  </span>
+                  <b>{formatScoreCompact(item.mastery.masteryScore)}</b>
+                </div>
+                <ProgressBar
+                  value={item.mastery.masteryScore ?? 0}
+                  color="var(--color-accent)"
+                  ariaLabel={item.title}
+                />
+                <p className={styles.skillMeta}>{masteryStatusLabel(item.mastery.status)}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+
+      {needReview.length > 0 ? (
+        <Card padding="sm">
+          <h3>Нужно повторить</h3>
+          <ul className={styles.plainList}>
+            {needReview.map((item) => (
+              <li key={item.skillId}>{item.title}</li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {strong.length > 0 ? (
+        <Card padding="sm">
+          <h3>Сильные навыки</h3>
+          <ul className={styles.plainList}>
+            {strong.map((item) => (
+              <li key={item.skillId}>{item.title}</li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card>
         <h3>Время тренировки</h3>

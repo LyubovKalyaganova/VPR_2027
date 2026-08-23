@@ -60,7 +60,11 @@
     "test:english-generators": "node scripts/run-english-generators-check.mjs",
     "test:english-coverage": "node scripts/run-english-coverage-check.mjs",
     "test:english-training-selection": "node scripts/run-english-training-selection-check.mjs",
-    "test:english-bank-audit": "node scripts/run-english-bank-audit-check.mjs"
+    "test:english-bank-audit": "node scripts/run-english-bank-audit-check.mjs",
+    "test:progress": "node scripts/run-progress-check.mjs",
+    "test:mastery": "node scripts/run-mastery-check.mjs",
+    "test:adaptive": "node scripts/run-adaptive-check.mjs",
+    "test:attempt-history": "node scripts/run-attempt-history-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

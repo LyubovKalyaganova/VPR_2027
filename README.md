@@ -17,30 +17,23 @@
 | Русский язык R01–R25 | **FROZEN** |
 | Окружающий мир W01–W25 | **FROZEN** |
 | Литературное чтение L01–L24 | **FROZEN** |
-| Английский язык E01–E18 | **реализовано** — generators, pool, weighted selection |
+| Английский язык E01–E18 | **FROZEN** |
+| Progress / Mastery / Adaptive | **Этап 14** — история попыток ? mastery ? weak |
 | Subject-aware training | mathematics / russian / world / reading / english |
 | Typecheck / build | Проходят |
 | Capacitor / `android/` | Присутствуют |
 
-**Английский язык (`subject: english`):**
-- Каталог: **E01–E18** (не E19+)
-- ВПР coverage: **4/4** host tasks (25 pts)
-- Training pool: 108 задач (18?3?2)
-- Audio: TTS en-GB, `listenLimit: 2`
-- Writing: training analog K1/K2 (не экспертная проверка)
-- UI: `/train?subject=english`
+**Прогресс (Этап 14):**
+- Source of truth: `Attempt` history (`localAttemptRecorder` / localStorage)
+- Mastery: `calculateSkillMastery` (0–100, `new` ? weak)
+- Adaptive weak: cold-start по trainingWeight; с историей — weakness + review
+- SubjectPage / TrainResult: реальные данные по всем 5 предметам
+- Scripts: `test:progress`, `test:mastery`, `test:adaptive`, `test:attempt-history`
 
-**Литературное чтение (`subject: reading`):**
-- Каталог: **L01–L24**
-- ВПР coverage: **13/13** host skills
-- Training pool: 144 задачи (24?3?2)
-- Режимы: quick / normal / random / weak / topic
-- UI: `/train?subject=reading`
-
-**Цепочка тренировки:**
+**Цепочка:**
 
 ```text
-SKILL_WEIGHTS ? recommendSessionSkillMix ? generators ? TaskEngine ? session
+Answer ? Checker ? AttemptRecorder ? History ? Mastery ? Adaptive / UI
 ```
 
 ### Ещё не завершено
@@ -74,20 +67,13 @@ npm install
 npm run dev
 ```
 
-Проверки:
+Проверки прогресса:
 
 ```bash
+npm run test:progress
+npm run test:mastery
+npm run test:adaptive
+npm run test:attempt-history
 npm run typecheck
 npm run build
-npm run test:english-generators
-npm run test:english-coverage
-npm run test:english-training-selection
-npm run test:english-bank-audit
-npm run test:literary-reading-generators
-npm run test:literary-reading-coverage
-npm run test:literary-reading-training-selection
-npm run test:literary-reading-bank-audit
-npm run test:world-bank-audit
-npm run test:russian-bank-audit
-npm run test:math-training-selection
 ```

@@ -78,3 +78,33 @@
 .page a {
   display: block;
 }
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.plainList {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.topicList {
+  display: grid;
+  gap: 10px;
+}
+
+.topicRow {
+  display: grid;
+  gap: 6px;
+}
+
+.skillHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}

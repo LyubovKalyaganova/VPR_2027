@@ -1,14 +1,16 @@
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { getSkillsBySubject, getSubject } from '../data/demo/subjects';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { getSubject } from '../data/demo/subjects';
 import { localAttemptRecorder } from '../db';
+import { SkillProgressCard } from '../components/progress/SkillProgressCard';
 import {
   formatScoreCompact,
   formatScoreLabel,
   getChildProgress,
-  masteryStatusLabel,
+  getSubjectSkillProgress,
+  getTopicProgressForSubject,
+  getWeakSkillProgress,
 } from '../services/progressService';
 import { Button, Card, ProgressBar } from '../components/ui';
-import { useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
 import type { SubjectId } from '../types';
 import styles from './SubjectPage.module.css';
@@ -17,29 +19,36 @@ function isSubjectId(value: string): value is SubjectId {
   return ['russian', 'mathematics', 'world', 'reading', 'english'].includes(value);
 }
 
+function trainPath(subjectId: SubjectId): string {
+  return `/train?subject=${subjectId}`;
+}
+
 export function SubjectPage() {
   const { subjectId } = useParams();
   const navigate = useNavigate();
   const profile = useUserStore((state) => state.profile);
-  const startMath = useTrainingStore((state) => state.startMath);
-  const progress = getChildProgress(
-    profile ? localAttemptRecorder.getAll(profile.userId) : [],
-    profile?.userId ?? '',
-  );
+  const attempts = profile ? localAttemptRecorder.getAll(profile.userId) : [];
+  const progress = getChildProgress(attempts, profile?.userId ?? '');
 
   if (!subjectId || !isSubjectId(subjectId)) {
     return <Navigate to="/subjects" replace />;
   }
 
   const subject = getSubject(subjectId);
-  const score = progress.subjectScores[subjectId];
-  const mathSkills = subjectId === 'mathematics' ? progress.mathSkills : null;
-  const otherSkills = mathSkills ? [] : getSkillsBySubject(subjectId);
-  const weakIds = new Set(progress.weakSkills.map((item) => item.skill.id));
-
   if (!subject) {
     return <Navigate to="/subjects" replace />;
   }
+
+  const score = progress.subjectScores[subjectId];
+  const skills = getSubjectSkillProgress(attempts, profile?.userId ?? '', subjectId);
+  const weakSkills = getWeakSkillProgress(skills);
+  const weakIds = new Set(weakSkills.map((item) => item.skill.id));
+  const topics = getTopicProgressForSubject(attempts, profile?.userId ?? '', subjectId).filter(
+    (topic) => topic.score !== null,
+  );
+  const strong = skills
+    .filter((item) => item.mastery.status === 'mastered' || item.mastery.status === 'confident')
+    .slice(0, 5);
 
   return (
     <div className={styles.page}>
@@ -52,80 +61,72 @@ export function SubjectPage() {
         <strong>{formatScoreLabel(score)}</strong>
       </Card>
 
-      <div className={styles.list}>
-        {mathSkills
-          ? mathSkills.map((item) => {
-              const recommend = weakIds.has(item.skill.id);
-              return (
-                <Card key={item.skill.id} padding="sm" className={styles.skill}>
-                  <div className={styles.skillHead}>
-                    <h3>{item.skill.title}</h3>
-                    <b>{formatScoreCompact(item.mastery.masteryScore)}</b>
-                  </div>
-                  <ProgressBar
-                    value={item.mastery.masteryScore ?? 0}
-                    color={subject.accent}
-                    ariaLabel={item.skill.title}
-                  />
-                  <div className={styles.skillMeta}>
-                    <span>{masteryStatusLabel(item.mastery.status)}</span>
-                    {recommend ? <span className={styles.recommend}>Рекомендуем потренировать эту тему</span> : null}
-                  </div>
-                </Card>
-              );
-            })
-          : otherSkills.map((skill) => (
-              <Card key={skill.id} padding="sm" className={styles.skill}>
-                <div className={styles.skillHead}>
-                  <h3>{skill.title}</h3>
-                  <b>—</b>
-                </div>
-                <ProgressBar value={0} color={subject.accent} ariaLabel={skill.title} />
-                <div className={styles.skillMeta}>
-                  <span>Нет данных</span>
-                </div>
-              </Card>
+      {weakSkills.length > 0 ? (
+        <Card padding="sm">
+          <h3 className={styles.sectionTitle}>Нужно повторить</h3>
+          <ul className={styles.plainList}>
+            {weakSkills.slice(0, 5).map((item) => (
+              <li key={item.skill.id}>
+                {item.skill.title} · {formatScoreCompact(item.mastery.masteryScore)}
+              </li>
             ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {strong.length > 0 ? (
+        <Card padding="sm">
+          <h3 className={styles.sectionTitle}>Сильные стороны</h3>
+          <ul className={styles.plainList}>
+            {strong.map((item) => (
+              <li key={item.skill.id}>
+                {item.skill.title} · {formatScoreCompact(item.mastery.masteryScore)}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {topics.length > 0 ? (
+        <Card padding="sm">
+          <h3 className={styles.sectionTitle}>Темы</h3>
+          <div className={styles.topicList}>
+            {topics.map((topic) => (
+              <div key={topic.topicId} className={styles.topicRow}>
+                <div className={styles.skillHead}>
+                  <span>{topic.title}</span>
+                  <b>{formatScoreCompact(topic.score)}</b>
+                </div>
+                <ProgressBar value={topic.score ?? 0} color={subject.accent} ariaLabel={topic.topicId} />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+
+      <div className={styles.list}>
+        {skills.map((item) => (
+          <SkillProgressCard
+            key={item.skill.id}
+            title={item.skill.title}
+            mastery={item.mastery}
+            accent={subject.accent}
+            recommend={weakIds.has(item.skill.id)}
+          />
+        ))}
       </div>
 
-      {subjectId === 'mathematics' ||
-      subjectId === 'russian' ||
-      subjectId === 'world' ||
-      subjectId === 'reading' ||
-      subjectId === 'english' ? (
-        <Button
-          fullWidth
-          onClick={() => {
-            if (!profile) {
-              return;
-            }
-            if (subjectId === 'russian') {
-              navigate('/train?subject=russian');
-              return;
-            }
-            if (subjectId === 'world') {
-              navigate('/train?subject=world');
-              return;
-            }
-            if (subjectId === 'reading') {
-              navigate('/train?subject=reading');
-              return;
-            }
-            if (subjectId === 'english') {
-              navigate('/train?subject=english');
-              return;
-            }
-            const sessionId = startMath(profile.userId, 'quick');
-            navigate(`/train/session/${sessionId}`);
-          }}
-        >
-          Тренировать этот предмет
-        </Button>
-      ) : (
-        <Link to="/train">
-          <Button fullWidth>Тренировать этот предмет</Button>
-        </Link>
-      )}
+      <Button
+        fullWidth
+        onClick={() => {
+          if (!profile) {
+            return;
+          }
+          navigate(trainPath(subjectId));
+        }}
+      >
+        Тренировать этот предмет
+      </Button>
     </div>
   );
 }

@@ -1,0 +1,32 @@
+.skill {
+  display: grid;
+  gap: 8px;
+}
+
+.skillHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.skillHead h3 {
+  margin: 0;
+  min-width: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.skillMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.recommend {
+  color: var(--color-warning);
+  font-size: 13px;
+  font-weight: 650;
+}
