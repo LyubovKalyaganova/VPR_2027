@@ -14,6 +14,15 @@ export function isAnswerReady(task: Task, answer: UserAnswer): boolean {
       return typeof answer === 'string' && answer.trim().length > 0;
     case 'numberAnswer':
       return parseUserNumber(answer) !== null;
+    case 'imageTask': {
+      if (task.answers && task.answers.length > 0) {
+        return typeof answer === 'string' && answer.trim().length > 0;
+      }
+      if (typeof task.correctAnswer === 'number') {
+        return parseUserNumber(answer) !== null;
+      }
+      return typeof answer === 'string' && answer.trim().length > 0;
+    }
     case 'multipleChoice':
       return Array.isArray(answer) && answer.length > 0;
     case 'ordering': {

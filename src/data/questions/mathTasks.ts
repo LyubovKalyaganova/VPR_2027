@@ -1,3 +1,12 @@
+/**
+ * Учебный математический банк (10 заданий).
+ * skillId — канонический ID из CONTENT_MATRIX_MATH.md (M01–M35).
+ * Поле `skill` хранит человекочитаемый подтип, не новый навык.
+ *
+ * Сопоставление с матрицей 2.0:
+ * сложение → M03 `math.calculation.multi_digit.addition`;
+ * вычитание → M04 `math.calculation.multi_digit.subtraction`.
+ */
 import type { MathSkillId, MathTopicId } from '../taxonomy/math';
 import type { Task } from '../../types';
 

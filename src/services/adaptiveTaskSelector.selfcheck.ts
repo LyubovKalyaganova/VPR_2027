@@ -32,7 +32,7 @@ function attempt(overrides: Partial<Attempt> & Pick<Attempt, 'isCorrect'>): Atte
 }
 
 function bank() {
-  return taskRepository.getMathTasks();
+  return taskRepository.getStaticMathTasks();
 }
 
 function pick(overrides: Partial<Parameters<typeof selectAdaptiveTasks>[0]> & { attempts: Attempt[]; count: number }) {

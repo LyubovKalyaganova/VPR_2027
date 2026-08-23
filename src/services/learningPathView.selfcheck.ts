@@ -102,14 +102,16 @@ export function runLearningPathViewSelfChecks(): string[] {
   const firstNotMastered = getLearningPathView(withStatus(5, 'not_mastered', 20));
   check(firstNotMastered.currentSkillId === MATH_SKILLS[5]?.id, 'F: нет developing/confident → первый not_mastered');
 
-  const masteredAndNew = MATH_SKILLS.map((skill, index) =>
+  const firstSectionId = MATH_SECTIONS[0]?.id;
+  const masteredAndNew = MATH_SKILLS.map((skill) =>
     progressFor(skill, {
-      status: index < 4 ? 'mastered' : 'new',
-      masteryScore: index < 4 ? 95 : null,
+      status: skill.sectionId === firstSectionId ? 'mastered' : 'new',
+      masteryScore: skill.sectionId === firstSectionId ? 95 : null,
     }),
   );
   const mixedView = getLearningPathView(masteredAndNew);
-  check(mixedView.currentSkillId === MATH_SKILLS[4]?.id, 'G: mastered + new → первый new');
+  const firstNewSkill = MATH_SKILLS.find((skill) => skill.sectionId !== firstSectionId);
+  check(mixedView.currentSkillId === firstNewSkill?.id, 'G: mastered + new → первый new');
   check(mixedView.sections[0]?.marker === 'completed', 'G: полностью освоенный раздел — completed');
 
   const allMastered = getLearningPathView(allSkills('mastered', 100));
@@ -123,6 +125,7 @@ export function runLearningPathViewSelfChecks(): string[] {
   const demoExtra: SkillProgress = {
     skill: {
       id: 'demo-fake-skill',
+      code: 'M03',
       subjectId: 'mathematics',
       sectionId: 'math.calculation',
       topicId: 'math.calculation.multi_digit',

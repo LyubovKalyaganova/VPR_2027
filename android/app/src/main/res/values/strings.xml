@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ВПР 4 класс 2027</string>
+    <string name="title_activity_main">ВПР 4 класс 2027</string>
+    <string name="package_name">ru.vpr4class2027.app</string>
+    <string name="custom_url_scheme">ru.vpr4class2027.app</string>
+</resources>

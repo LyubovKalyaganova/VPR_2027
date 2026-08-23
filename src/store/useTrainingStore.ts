@@ -5,6 +5,7 @@ import { TaskEngine } from '../engine';
 import type { SessionSummary, TaskSession, UserAnswer } from '../engine';
 import { MATH_SKILLS, type MathSkill } from '../data/taxonomy/math';
 import { getDemoTasks } from '../data/questions/demoTasks';
+import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
 import { selectAdaptiveTasks } from '../services/adaptiveTaskSelector';
 import { calculateSkillMastery } from '../services/masteryService';
 import { getReviewState } from '../services/reviewScheduler';
@@ -14,18 +15,19 @@ import { taskRepository } from '../services/taskRepository';
 import type { Attempt, Task, TrainingMode } from '../types';
 import { shuffle } from '../utils/shuffle';
 
+/**
+ * quick / normal / random: взвешенный mix (MATH_SKILL_WEIGHTS → recommendSessionSkillMix → generators).
+ * Не равномерный shuffle по всему банку.
+ */
 function pickMathTasks(mode: TrainingMode): Task[] {
-  const bank = taskRepository.getMathTasks();
-
   switch (mode) {
     case 'quick':
-      return shuffle(bank).slice(0, 5);
+      return selectWeightedMathSessionTasks(5);
     case 'normal':
     case 'random':
-      return shuffle(bank).slice(0, 10);
+      return selectWeightedMathSessionTasks(10);
     default:
-      // TODO: режимы exam и diagnostic пока не подбирают состав.
-      return bank;
+      return taskRepository.getMathTasks();
   }
 }
 

@@ -1,5 +1,6 @@
 import type { Attempt, Difficulty, SkillMastery, SubjectId, Task } from '../types';
 import { MATH_SKILLS } from '../data/taxonomy/math';
+import { orderSkillIdsByTrainingWeight } from '../features/mathematics/mathTrainingSelection';
 import { calculateSkillMastery, selectSkillAttempts } from './masteryService';
 import { getReviewState, type SkillReviewState } from './reviewScheduler';
 import { shuffle } from '../utils/shuffle';
@@ -183,7 +184,19 @@ export function selectAdaptiveTasks(input: AdaptiveTaskSelectorInput): Task[] {
   const exclude = new Set(input.excludeQuestionIds ?? []);
   const contexts = buildContexts(input, poolTasks, skillIds, nowIso);
   const allNew = contexts.every((context) => context.mastery.status === 'new');
-  const rotation = allNew ? shuffle(contexts) : [...contexts].sort((left, right) => compareContexts(left, right, nowIso));
+  // Cold start: для математики — порядок по trainingWeight; иначе shuffle.
+  // При наличии истории weakness/review приоритетнее весов (compareContexts).
+  const rotation = allNew
+    ? input.subject === 'mathematics'
+      ? (() => {
+          const order = orderSkillIdsByTrainingWeight(skillIds);
+          const rank = new Map(order.map((id, index) => [id, index]));
+          return [...contexts].sort(
+            (a, b) => (rank.get(a.skillId) ?? 999) - (rank.get(b.skillId) ?? 999),
+          );
+        })()
+      : shuffle(contexts)
+    : [...contexts].sort((left, right) => compareContexts(left, right, nowIso));
 
   const selected: Task[] = [];
   const selectedIds = new Set<string>();

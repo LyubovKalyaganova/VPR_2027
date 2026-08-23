@@ -8,6 +8,17 @@
   line-height: 1.5;
 }
 
+.image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 4px 0;
+  border-radius: 16px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+}
+
 .question {
   margin: 0;
   font-size: 22px;

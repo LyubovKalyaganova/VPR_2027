@@ -1,5 +1,6 @@
-import { getDemoTasks, getTaskById as getDemoTaskById } from '../data/questions/demoTasks';
 import { MATH_TASKS } from '../data/questions/mathTasks';
+import { getDemoTasks, getTaskById as getDemoTaskById } from '../data/questions/demoTasks';
+import { getGeneratedMathTaskById, getGeneratedMathTrainingPool } from './mathTrainingPool';
 import type { Difficulty, SourceType, SubjectId, Task, TaskType } from '../types';
 
 export type TaskFilter = {
@@ -11,16 +12,26 @@ export type TaskFilter = {
   sourceType?: SourceType;
 };
 
-function getMathTasks(): Task[] {
+/** Статический учебный банк (исторические 10 заданий M03/M04). */
+function getStaticMathTasks(): Task[] {
   return MATH_TASKS;
 }
 
-function getById(id: string): Task | undefined {
-  return getDemoTaskById(id) ?? MATH_TASKS.find((task) => task.id === id);
+/**
+ * Полный математический банк для тренировки:
+ * статика + сгенерированный пул M01–M35.
+ */
+function getMathTasks(): Task[] {
+  return [...getStaticMathTasks(), ...getGeneratedMathTrainingPool()];
 }
 
+function getById(id: string): Task | undefined {
+  return getDemoTaskById(id) ?? MATH_TASKS.find((task) => task.id === id) ?? getGeneratedMathTaskById(id);
+}
+
+/** DEMO-банк и математический банк вместе. */
 function getAll(): Task[] {
-  return [...getDemoTasks(), ...MATH_TASKS];
+  return [...getDemoTasks(), ...getMathTasks()];
 }
 
 function find(filter: TaskFilter): Task[] {
@@ -75,6 +86,7 @@ export const taskRepository = {
   getById,
   getDemoTasks,
   getMathTasks,
+  getStaticMathTasks,
   getBySubject,
   getAll,
   find,

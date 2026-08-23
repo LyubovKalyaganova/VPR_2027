@@ -82,6 +82,31 @@ export function AnswerArea({ task, presentation, answer, disabled, onChange }: A
       return (
         <FillBlankAnswer value={typeof answer === 'string' ? answer : ''} disabled={disabled} onChange={onChange} />
       );
+    case 'imageTask': {
+      const options = presentation.options ?? task.answers ?? [];
+      if (options.length > 0) {
+        return (
+          <SingleChoiceAnswer
+            options={options}
+            value={typeof answer === 'string' ? answer : null}
+            disabled={disabled}
+            onChange={onChange}
+          />
+        );
+      }
+      if (typeof task.correctAnswer === 'number') {
+        return (
+          <NumberAnswer
+            value={typeof answer === 'string' || typeof answer === 'number' ? String(answer) : ''}
+            disabled={disabled}
+            onChange={onChange}
+          />
+        );
+      }
+      return (
+        <ShortAnswer value={typeof answer === 'string' ? answer : ''} disabled={disabled} onChange={onChange} />
+      );
+    }
     default:
       return <p>Этот тип задания появится позже.</p>;
   }

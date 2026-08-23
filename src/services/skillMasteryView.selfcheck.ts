@@ -58,7 +58,7 @@ export function runSkillMasteryViewSelfChecks(): string[] {
   const fullView = getSkillMasteryView(full);
   const fullSkills = flattenSkills(fullView);
 
-  check(fullSkills.length === 22, `A: 22 навыка → все присутствуют, получено ${fullSkills.length}`);
+  check(fullSkills.length === 35, `A: 35 навыков → все присутствуют, получено ${fullSkills.length}`);
   check(
     MATH_SKILLS.every((skill) => fullSkills.some((item) => item.skillId === skill.id)),
     'A: каждый MATH_SKILLS присутствует во view',
