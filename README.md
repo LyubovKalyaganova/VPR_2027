@@ -16,18 +16,26 @@
 | ћатематика M01ЦM35 | **FROZEN** |
 | –усский €зык R01ЦR25 | **FROZEN** |
 | ќкружающий мир W01ЦW25 | **FROZEN** |
-| Ћитературное чтение L01ЦL24 | **реализовано** Ч generators, pool, weighted selection |
-| Subject-aware training | mathematics / russian / world / reading |
+| Ћитературное чтение L01ЦL24 | **FROZEN** |
+| јнглийский €зык E01ЦE18 | **реализовано** Ч generators, pool, weighted selection |
+| Subject-aware training | mathematics / russian / world / reading / english |
 | Typecheck / build | ѕроход€т |
 | Capacitor / `android/` | ѕрисутствуют |
 
+**јнглийский €зык (`subject: english`):**
+-  аталог: **E01ЦE18** (не E19+)
+- ¬ѕ– coverage: **4/4** host tasks (25 pts)
+- Training pool: 108 задач (18?3?2)
+- Audio: TTS en-GB, `listenLimit: 2`
+- Writing: training analog K1/K2 (не экспертна€ проверка)
+- UI: `/train?subject=english`
+
 **Ћитературное чтение (`subject: reading`):**
--  аталог: **L01ЦL24** (не L25+)
+-  аталог: **L01ЦL24**
 - ¬ѕ– coverage: **13/13** host skills
 - Training pool: 144 задачи (24?3?2)
 - –ежимы: quick / normal / random / weak / topic
 - UI: `/train?subject=reading`
-- –азвЄрнутые задани€ ¬ѕ– 3, 6, 13 Ч **training analog**, не экспертна€ проверка свободного ответа
 
 **÷епочка тренировки:**
 
@@ -37,12 +45,11 @@ SKILL_WEIGHTS ? recommendSessionSkillMix ? generators ? TaskEngine ? session
 
 ### ≈щЄ не завершено
 
-- јнглийский Ч предметна€ матрица и генераторы
 - ѕолноценный exam/¬ѕ–-режим (таймер, оценка)
 - —ервер / облачна€ синхронизаци€
 - Android production/store readiness не объ€влена
 
-M36+, R26+, W26+, L25+ **не создаютс€** без отдельного решени€.
+M36+, R26+, W26+, L25+, E19+ **не создаютс€** без отдельного решени€.
 
 ---
 
@@ -55,6 +62,7 @@ M36+, R26+, W26+, L25+ **не создаютс€** без отдельного решени€.
 | `CONTENT_MATRIX_RUSSIAN.md` | –усский R01ЦR25 FROZEN |
 | `CONTENT_MATRIX_WORLD.md` | ќкружающий мир W01ЦW25 FROZEN |
 | `CONTENT_MATRIX_LITERARY_READING.md` | Ћитературное чтение L01ЦL24 |
+| `CONTENT_MATRIX_ENGLISH.md` | јнглийский €зык E01ЦE18 |
 | `MASTERY_SPEC.md` | ќсвоение навыков |
 
 ---
@@ -71,16 +79,15 @@ npm run dev
 ```bash
 npm run typecheck
 npm run build
-npm run test:math-training-selection
-npm run test:russian-generators
-npm run test:russian-coverage
-npm run test:russian-training-selection
-npm run test:world-generators
-npm run test:world-coverage
-npm run test:world-training-selection
-npm run test:world-bank-audit
+npm run test:english-generators
+npm run test:english-coverage
+npm run test:english-training-selection
+npm run test:english-bank-audit
 npm run test:literary-reading-generators
 npm run test:literary-reading-coverage
 npm run test:literary-reading-training-selection
 npm run test:literary-reading-bank-audit
+npm run test:world-bank-audit
+npm run test:russian-bank-audit
+npm run test:math-training-selection
 ```

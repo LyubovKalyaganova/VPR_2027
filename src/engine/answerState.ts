@@ -24,6 +24,13 @@ export function isAnswerReady(task: Task, answer: UserAnswer): boolean {
       return typeof answer === 'string' && answer.trim().length > 0;
     }
     case 'audio':
+      if (task.matchingLeft && task.matchingLeft.length > 0) {
+        if (typeof answer !== 'object' || Array.isArray(answer)) {
+          return false;
+        }
+        const left = task.matchingLeft;
+        return left.length > 0 && left.every((item) => Boolean(answer[item]));
+      }
       return typeof answer === 'string' && answer.trim().length > 0;
     case 'multipleChoice':
       return Array.isArray(answer) && answer.length > 0;
@@ -57,6 +64,8 @@ export function emptyAnswer(task: Task): UserAnswer {
       return [];
     case 'matching':
     case 'classification':
+      return {};
+    case 'audio':
       return {};
     default:
       return null;

@@ -16,6 +16,9 @@ function buildPresentation(task: Task): TaskPresentation {
     case 'imageTask':
       return task.answers && task.answers.length > 0 ? { options: shuffle(task.answers) } : {};
     case 'audio':
+      if (task.matchingLeft && task.matchingLeft.length > 0) {
+        return { matchingRight: shuffle(task.matchingRight ?? []) };
+      }
       return { options: shuffle(task.answers ?? []) };
     case 'matching':
       return { matchingRight: shuffle(task.matchingRight ?? []) };

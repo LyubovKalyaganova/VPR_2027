@@ -4,6 +4,7 @@ import { Button, Card } from '../components/ui';
 import { MATH_TOPICS } from '../data/taxonomy/math';
 import { RUSSIAN_TOPICS } from '../data/taxonomy/russian';
 import { WORLD_TOPICS } from '../data/taxonomy/world';
+import { ENGLISH_TOPICS } from '../data/taxonomy/english';
 import { READING_TOPICS } from '../data/taxonomy/literaryReading';
 import { localAttemptRecorder } from '../db';
 import { taskRepository } from '../services/taskRepository';
@@ -46,14 +47,17 @@ export function TrainPage() {
   const startRussian = useTrainingStore((state) => state.startRussian);
   const startWorld = useTrainingStore((state) => state.startWorld);
   const startLiteraryReading = useTrainingStore((state) => state.startLiteraryReading);
+  const startEnglish = useTrainingStore((state) => state.startEnglish);
   const startMathTopic = useTrainingStore((state) => state.startMathTopic);
   const startRussianTopic = useTrainingStore((state) => state.startRussianTopic);
   const startWorldTopic = useTrainingStore((state) => state.startWorldTopic);
   const startLiteraryReadingTopic = useTrainingStore((state) => state.startLiteraryReadingTopic);
+  const startEnglishTopic = useTrainingStore((state) => state.startEnglishTopic);
   const startWeak = useTrainingStore((state) => state.startWeak);
   const startRussianWeak = useTrainingStore((state) => state.startRussianWeak);
   const startWorldWeak = useTrainingStore((state) => state.startWorldWeak);
   const startLiteraryReadingWeak = useTrainingStore((state) => state.startLiteraryReadingWeak);
+  const startEnglishWeak = useTrainingStore((state) => state.startEnglishWeak);
   const startReview = useTrainingStore((state) => state.startReview);
   const startDaily = useTrainingStore((state) => state.startDaily);
   const startMistakes = useTrainingStore((state) => state.startMistakes);
@@ -69,7 +73,9 @@ export function TrainPage() {
         ? WORLD_TOPICS
         : subject === 'reading'
           ? READING_TOPICS
-          : MATH_TOPICS;
+          : subject === 'english'
+            ? ENGLISH_TOPICS
+            : MATH_TOPICS;
 
   const selectedTopicCount = selectedTopicId ? taskCountByTopic(subject, selectedTopicId) : 0;
   const canStartTopic =
@@ -115,7 +121,9 @@ export function TrainPage() {
             ? startWorldTopic(profile.userId, selectedTopicId)
             : subject === 'reading'
               ? startLiteraryReadingTopic(profile.userId, selectedTopicId)
-              : startMathTopic(profile.userId, selectedTopicId);
+              : subject === 'english'
+                ? startEnglishTopic(profile.userId, selectedTopicId)
+                : startMathTopic(profile.userId, selectedTopicId);
       if (!sessionId) {
         return;
       }
@@ -130,7 +138,9 @@ export function TrainPage() {
             ? startWorldWeak(profile.userId)
             : subject === 'reading'
               ? startLiteraryReadingWeak(profile.userId)
-              : startWeak(profile.userId);
+              : subject === 'english'
+                ? startEnglishWeak(profile.userId)
+                : startWeak(profile.userId);
       if (!sessionId) {
         setNotice('Пока нет заданий для тренировки слабых мест');
         return;
@@ -178,7 +188,9 @@ export function TrainPage() {
           ? startWorld(profile.userId, selected)
           : subject === 'reading'
             ? startLiteraryReading(profile.userId, selected)
-            : startMath(profile.userId, selected);
+            : subject === 'english'
+              ? startEnglish(profile.userId, selected)
+              : startMath(profile.userId, selected);
     navigate(`/train/session/${sessionId}`);
   }
 

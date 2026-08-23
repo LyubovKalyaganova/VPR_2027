@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Task } from '../../../types';
 import type { UserAnswer } from '../../../engine';
+import { MatchingAnswer } from './MatchingAnswer';
 import { SingleChoiceAnswer } from './SingleChoiceAnswer';
 import styles from './answers.module.css';
 
@@ -12,30 +13,36 @@ interface AudioAnswerProps {
   onChange: (answer: UserAnswer) => void;
 }
 
-function speakText(text: string): void {
+function speakText(text: string, lang: string): void {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
     return;
   }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'ru-RU';
-  utterance.rate = 0.85;
+  utterance.lang = lang;
+  utterance.rate = lang.startsWith('en') ? 0.9 : 0.85;
   window.speechSynthesis.speak(utterance);
 }
 
 export function AudioAnswer({ task, options, value, disabled, onChange }: AudioAnswerProps) {
-  const [played, setPlayed] = useState(false);
-  const spokenRef = useRef<string | null>(null);
-  const speechText = task.transcript?.replace(/-/g, ' ') ?? String(task.generatorParams?.spokenWord ?? '');
+  const isEnglish = task.subject === 'english';
+  const listenLimit = isEnglish ? (task.listenLimit ?? 2) : Number.POSITIVE_INFINITY;
+  const [playCount, setPlayCount] = useState(0);
+  const speechText = task.transcript ?? String(task.generatorParams?.spokenWord ?? '');
+  const hasMatching = Boolean(task.matchingLeft?.length);
+  const canPlay = isEnglish ? playCount < listenLimit : true;
 
   const handlePlay = useCallback(() => {
-    if (!speechText) {
+    if (!speechText || !canPlay) {
       return;
     }
-    speakText(speechText);
-    spokenRef.current = speechText;
-    setPlayed(true);
-  }, [speechText]);
+    speakText(isEnglish ? speechText : speechText.replace(/-/g, ' '), isEnglish ? 'en-GB' : 'ru-RU');
+    if (isEnglish) {
+      setPlayCount((count) => count + 1);
+    } else {
+      setPlayCount(1);
+    }
+  }, [speechText, canPlay, isEnglish]);
 
   useEffect(() => {
     return () => {
@@ -45,15 +52,43 @@ export function AudioAnswer({ task, options, value, disabled, onChange }: AudioA
     };
   }, []);
 
+  if (isEnglish) {
+    return (
+      <div className={styles.pool}>
+        <p className={styles.hint}>
+          Listen to the recording. You can play it {listenLimit} times.
+          {playCount > 0 ? ` Playback ${playCount} of ${listenLimit}.` : ''}
+        </p>
+        <button type="button" className={styles.option} onClick={handlePlay} disabled={disabled || !speechText || !canPlay}>
+          {playCount === 0 ? '▶ Listen' : canPlay ? `▶ Listen again (${playCount}/${listenLimit})` : `▶ Limit reached (${listenLimit}/${listenLimit})`}
+        </button>
+        {hasMatching ? (
+          <MatchingAnswer
+            left={task.matchingLeft ?? []}
+            right={task.matchingRight ?? ['1', '2', '3']}
+            value={value && typeof value === 'object' && !Array.isArray(value) ? value : {}}
+            disabled={disabled || playCount === 0}
+            onChange={onChange}
+          />
+        ) : (
+          <SingleChoiceAnswer
+            options={options}
+            value={typeof value === 'string' ? value : null}
+            disabled={disabled || playCount === 0}
+            onChange={onChange}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.pool}>
       <p className={styles.hint}>Прослушай слово и выбери правильное написание. Это подготовка к диктанту.</p>
       <button type="button" className={styles.option} onClick={handlePlay} disabled={disabled || !speechText}>
-        {played ? '▶ Прослушать ещё раз' : '▶ Прослушать слово'}
+        {playCount > 0 ? '▶ Прослушать ещё раз' : '▶ Прослушать слово'}
       </button>
-      {played && task.transcript ? (
-        <p className={styles.hint}>Подсказка после прослушивания: {task.transcript}</p>
-      ) : null}
+      {playedHint(playCount, task.transcript)}
       <SingleChoiceAnswer
         options={options}
         value={typeof value === 'string' ? value : null}
@@ -62,4 +97,11 @@ export function AudioAnswer({ task, options, value, disabled, onChange }: AudioA
       />
     </div>
   );
+}
+
+function playedHint(playCount: number, transcript?: string) {
+  if (playCount > 0 && transcript) {
+    return <p className={styles.hint}>Подсказка после прослушивания: {transcript}</p>;
+  }
+  return null;
 }

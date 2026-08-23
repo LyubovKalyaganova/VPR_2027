@@ -1,11 +1,12 @@
 import type { SubjectId, TrainingMode } from '../types';
 
-export type TrainSubject = 'mathematics' | 'russian' | 'world' | 'reading';
+export type TrainSubject = 'mathematics' | 'russian' | 'world' | 'reading' | 'english';
 
 export function parseTrainSubject(value: string | null | undefined): TrainSubject {
   if (value === 'russian') return 'russian';
   if (value === 'world') return 'world';
   if (value === 'reading' || value === 'literaryReading') return 'reading';
+  if (value === 'english') return 'english';
   return 'mathematics';
 }
 
@@ -17,6 +18,7 @@ export function subjectTitle(subject: TrainSubject): string {
   if (subject === 'russian') return 'русскому языку';
   if (subject === 'world') return 'окружающему миру';
   if (subject === 'reading') return 'литературному чтению';
+  if (subject === 'english') return 'английскому языку';
   return 'математике';
 }
 
@@ -36,7 +38,9 @@ export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
         ? 'окружающего мира'
         : subject === 'reading'
           ? 'литературного чтения'
-          : 'математического';
+          : subject === 'english'
+            ? 'английского'
+            : 'математического';
   const mathOnlyDisabled = subject !== 'mathematics';
   return [
     { id: 'quick', title: 'Быстрая тренировка', text: `5 заданий из ${bank} банка (weighted mix)` },

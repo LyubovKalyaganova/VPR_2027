@@ -91,7 +91,8 @@ export function SubjectPage() {
       {subjectId === 'mathematics' ||
       subjectId === 'russian' ||
       subjectId === 'world' ||
-      subjectId === 'reading' ? (
+      subjectId === 'reading' ||
+      subjectId === 'english' ? (
         <Button
           fullWidth
           onClick={() => {
@@ -108,6 +109,10 @@ export function SubjectPage() {
             }
             if (subjectId === 'reading') {
               navigate('/train?subject=reading');
+              return;
+            }
+            if (subjectId === 'english') {
+              navigate('/train?subject=english');
               return;
             }
             const sessionId = startMath(profile.userId, 'quick');

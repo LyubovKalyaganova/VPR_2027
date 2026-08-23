@@ -56,7 +56,11 @@
     "test:literary-reading-generators": "node scripts/run-literary-reading-generators-check.mjs",
     "test:literary-reading-coverage": "node scripts/run-literary-reading-coverage-check.mjs",
     "test:literary-reading-training-selection": "node scripts/run-literary-reading-training-selection-check.mjs",
-    "test:literary-reading-bank-audit": "node scripts/run-literary-reading-bank-audit-check.mjs"
+    "test:literary-reading-bank-audit": "node scripts/run-literary-reading-bank-audit-check.mjs",
+    "test:english-generators": "node scripts/run-english-generators-check.mjs",
+    "test:english-coverage": "node scripts/run-english-coverage-check.mjs",
+    "test:english-training-selection": "node scripts/run-english-training-selection-check.mjs",
+    "test:english-bank-audit": "node scripts/run-english-bank-audit-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

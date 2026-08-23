@@ -7,6 +7,7 @@ import {
   getGeneratedLiteraryReadingTaskById,
   getGeneratedLiteraryReadingTrainingPool,
 } from './literaryReadingTrainingPool';
+import { getGeneratedEnglishTaskById, getGeneratedEnglishTrainingPool } from './englishTrainingPool';
 import type { Difficulty, SourceType, SubjectId, Task, TaskType } from '../types';
 
 export type TaskFilter = {
@@ -43,6 +44,10 @@ function getLiteraryReadingTasks(): Task[] {
   return getGeneratedLiteraryReadingTrainingPool();
 }
 
+function getEnglishTasks(): Task[] {
+  return getGeneratedEnglishTrainingPool();
+}
+
 function getById(id: string): Task | undefined {
   return (
     getDemoTaskById(id) ??
@@ -50,7 +55,8 @@ function getById(id: string): Task | undefined {
     getGeneratedMathTaskById(id) ??
     getGeneratedRussianTaskById(id) ??
     getGeneratedWorldTaskById(id) ??
-    getGeneratedLiteraryReadingTaskById(id)
+    getGeneratedLiteraryReadingTaskById(id) ??
+    getGeneratedEnglishTaskById(id)
   );
 }
 
@@ -62,6 +68,7 @@ function getAll(): Task[] {
     ...getRussianTasks(),
     ...getWorldTasks(),
     ...getLiteraryReadingTasks(),
+    ...getEnglishTasks(),
   ];
 }
 
@@ -120,6 +127,7 @@ export const taskRepository = {
   getRussianTasks,
   getWorldTasks,
   getLiteraryReadingTasks,
+  getEnglishTasks,
   getStaticMathTasks,
   getBySubject,
   getAll,

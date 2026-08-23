@@ -7,11 +7,13 @@ import { MATH_SKILLS, type MathSkill } from '../data/taxonomy/math';
 import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
 import { WORLD_SKILLS } from '../data/taxonomy/world';
 import { READING_SKILLS } from '../data/taxonomy/literaryReading';
+import { ENGLISH_SKILLS } from '../data/taxonomy/english';
 import { getDemoTasks } from '../data/questions/demoTasks';
 import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
 import { selectWeightedRussianSessionTasks } from '../features/russian/russianTrainingSelection';
 import { selectWeightedWorldSessionTasks } from '../features/world/worldTrainingSelection';
 import { selectWeightedReadingSessionTasks } from '../features/reading/literaryReadingTrainingSelection';
+import { selectWeightedEnglishSessionTasks } from '../features/english/englishTrainingSelection';
 import { selectAdaptiveTasks } from '../services/adaptiveTaskSelector';
 import { calculateSkillMastery } from '../services/masteryService';
 import { getReviewState } from '../services/reviewScheduler';
@@ -48,6 +50,19 @@ function pickReadingTasks(mode: TrainingMode): Task[] {
       return selectWeightedReadingSessionTasks(10, { seed: Date.now() >>> 0 });
     default:
       return taskRepository.getLiteraryReadingTasks();
+  }
+}
+
+function pickEnglishTasks(mode: TrainingMode): Task[] {
+  switch (mode) {
+    case 'quick':
+      return selectWeightedEnglishSessionTasks(5);
+    case 'normal':
+      return selectWeightedEnglishSessionTasks(10);
+    case 'random':
+      return selectWeightedEnglishSessionTasks(10, { seed: Date.now() >>> 0 });
+    default:
+      return taskRepository.getEnglishTasks();
   }
 }
 
@@ -200,14 +215,17 @@ interface TrainingState {
   startRussian: (userId: string, mode?: TrainingMode) => string;
   startWorld: (userId: string, mode?: TrainingMode) => string;
   startLiteraryReading: (userId: string, mode?: TrainingMode) => string;
+  startEnglish: (userId: string, mode?: TrainingMode) => string;
   startMathTopic: (userId: string, topicId: string) => string | null;
   startRussianTopic: (userId: string, topicId: string) => string | null;
   startWorldTopic: (userId: string, topicId: string) => string | null;
   startLiteraryReadingTopic: (userId: string, topicId: string) => string | null;
+  startEnglishTopic: (userId: string, topicId: string) => string | null;
   startWeak: (userId: string) => string | null;
   startRussianWeak: (userId: string) => string | null;
   startWorldWeak: (userId: string) => string | null;
   startLiteraryReadingWeak: (userId: string) => string | null;
+  startEnglishWeak: (userId: string) => string | null;
   startReview: (userId: string) => string | null;
   startDaily: (userId: string) => string | null;
   startMistakes: (userId: string) => string | null;
@@ -274,6 +292,19 @@ export const useTrainingStore = create<TrainingState>()(
       startLiteraryReading: (userId, mode = 'quick') => {
         const tasks = pickReadingTasks(mode);
         assertSubjectTasks(tasks, 'reading');
+        const session = taskEngine.createSession({
+          userId,
+          mode,
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startEnglish: (userId, mode = 'quick') => {
+        const tasks = pickEnglishTasks(mode);
+        assertSubjectTasks(tasks, 'english');
         const session = taskEngine.createSession({
           userId,
           mode,
@@ -365,6 +396,29 @@ export const useTrainingStore = create<TrainingState>()(
           return null;
         }
         assertSubjectTasks(tasks, 'reading');
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'weak',
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startEnglishWeak: (userId) => {
+        const tasks = selectAdaptiveTasks({
+          userId,
+          subject: 'english',
+          count: 5,
+          attempts: localAttemptRecorder.getAll(userId),
+          tasks: taskRepository.getBySubject('english'),
+          skills: ENGLISH_SKILLS,
+        });
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'english');
         const session = taskEngine.createSession({
           userId,
           mode: 'weak',
@@ -485,6 +539,22 @@ export const useTrainingStore = create<TrainingState>()(
           return null;
         }
         assertSubjectTasks(tasks, 'reading');
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'topic',
+          tasks: shuffle(tasks).slice(0, 10),
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startEnglishTopic: (userId, topicId) => {
+        const tasks = taskRepository.getByTopic(topicId).filter((task) => task.subject === 'english');
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertSubjectTasks(tasks, 'english');
         const session = taskEngine.createSession({
           userId,
           mode: 'topic',
