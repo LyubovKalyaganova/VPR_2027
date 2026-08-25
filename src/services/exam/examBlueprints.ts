@@ -80,6 +80,8 @@ function buildMathBlueprint(): ExamBlueprint {
     totalSlots: slots.length,
     maxScore: VPR_2027_OFFICIAL.maxPrimaryScore,
     gradingScale: null,
+    scoringNote:
+      'Это тренировочный вариант по структуре ВПР, а не официальная работа. Баллы помогают понять, что повторить.',
     slots,
   };
 }
@@ -98,7 +100,7 @@ function buildRussianBlueprint(): ExamBlueprint {
     maxScore: slots.length,
     gradingScale: null,
     scoringNote:
-      'Официальная шкала оценок для русского языка в матрице проекта не зафиксирована. Показан процент и количество верных ответов.',
+      'Показаны процент и число верных ответов. Школьная оценка по официальной шкале здесь не выставляется.',
     slots,
   };
 }
@@ -122,7 +124,7 @@ function buildWorldBlueprint(): ExamBlueprint {
     maxScore: VPR_2027_WORLD_OFFICIAL.maxPoints,
     gradingScale: null,
     scoringNote:
-      'Развёрнутые задания (6, 7.2, 8.2, 10.2) проверяются как training analog, не экспертная проверка.',
+      'Часть заданий с развёрнутым ответом проверяется упрощённо. На настоящей ВПР учитель оценивает иначе.',
     slots,
   };
 }
@@ -144,7 +146,7 @@ function buildReadingBlueprint(): ExamBlueprint {
     totalSlots: slots.length,
     maxScore: VPR_2027_READING_OFFICIAL.maxPoints,
     gradingScale: READING_GRADING,
-    scoringNote: 'Задания 3 и 13 — training analog для развёрнутого ответа.',
+    scoringNote: 'Задания 3 и 13 проверяются упрощённо — это подготовка, а не оценка учителя.',
     slots,
   };
 }
@@ -165,7 +167,7 @@ function buildEnglishBlueprint(): ExamBlueprint {
     totalSlots: slots.length,
     maxScore: VPR_2027_ENGLISH_OFFICIAL.maxPoints,
     gradingScale: ENGLISH_GRADING,
-    scoringNote: 'Задание 4 (form/writing) — training analog по K1/K2, не экспертная проверка.',
+    scoringNote: 'Задание 4 (анкета) проверяется упрощённо. На настоящей ВПР критерии другие.',
     slots,
   };
 }

@@ -6,6 +6,17 @@
   padding: 8px 8px 0;
 }
 
+@media (min-width: 768px) {
+  .header {
+    min-height: 64px;
+    padding: 12px 12px 0;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+}
+
 .title {
   margin: 0;
   min-width: 0;

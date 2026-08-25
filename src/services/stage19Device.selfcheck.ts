@@ -47,9 +47,9 @@ export function runStage19DeviceSelfChecks(): string[] {
   check(progressSrc.includes('Начни тренировку'), 'cold-start caption present');
   check(progressSrc.includes('Нет данных'), 'empty score label present');
 
-  // Android config still portrait + no dangerous permissions
+  // Android: orientation unlocked for tablets + no dangerous permissions
   const manifest = read('android/app/src/main/AndroidManifest.xml');
-  check(manifest.includes('portrait'), 'portrait locked');
+  check(manifest.includes('fullSensor'), 'tablet orientation unlocked');
   check(!manifest.includes('CAMERA'), 'no camera');
   check(!manifest.includes('RECORD_AUDIO'), 'no mic');
 

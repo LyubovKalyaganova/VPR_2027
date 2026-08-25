@@ -73,7 +73,7 @@ export function ExamStartPage() {
       <Card className={styles.hero}>
         <p className={styles.kicker}>Режим ВПР</p>
         <h2>ВПР — {blueprint.title}</h2>
-        <p>Официальная структура ВПР-2027. Отдельный экзаменационный режим.</p>
+        <p>Тренировочный вариант по структуре ВПР 4 класса. Это не официальный бланк.</p>
       </Card>
 
       <Card>
@@ -106,7 +106,9 @@ export function ExamStartPage() {
       ) : null}
 
       <Card padding="sm">
-        <p className={styles.note}>После начала запустится таймер. Можно вернуться к предыдущим заданиям.</p>
+        <p className={styles.note}>
+          После начала запустится таймер. Подсказок нет. Можно вернуться к предыдущим заданиям.
+        </p>
       </Card>
 
       {error ? (

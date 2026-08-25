@@ -50,7 +50,11 @@ export class TaskEngine {
     private readonly recorder: AttemptRecorder,
   ) {}
 
-  requireTask(taskId: string): Task {
+  requireTask(taskId: string, session?: TaskSession): Task {
+    const embedded = session?.tasks?.find((task) => task.id === taskId);
+    if (embedded) {
+      return embedded;
+    }
     const task = this.getTask(taskId);
     if (!task) {
       throw new Error(`Задание ${taskId} не найдено`);
@@ -74,6 +78,7 @@ export class TaskEngine {
       userId: params.userId,
       mode: params.mode,
       taskIds: params.tasks.map((task) => task.id),
+      tasks: params.tasks,
       currentIndex: 0,
       phase: 'answering',
       currentAnswer: emptyAnswer(params.tasks[0]),
@@ -91,7 +96,7 @@ export class TaskEngine {
     if (!taskId) {
       throw new Error('В сессии нет текущего задания');
     }
-    return this.requireTask(taskId);
+    return this.requireTask(taskId, session);
   }
 
   getPresentation(session: TaskSession): TaskPresentation {
@@ -187,7 +192,7 @@ export class TaskEngine {
     }
     next.currentIndex = session.currentIndex + 1;
     next.phase = 'answering';
-    next.currentAnswer = emptyAnswer(this.requireTask(next.taskIds[next.currentIndex]));
+    next.currentAnswer = emptyAnswer(this.requireTask(next.taskIds[next.currentIndex]!, next));
     next.currentIsCorrect = null;
     next.hintsUsedOnCurrent = 0;
     next.itemStartedAt = Date.now();

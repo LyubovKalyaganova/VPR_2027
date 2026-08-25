@@ -2,6 +2,7 @@
  * Stage 17: UX routes, subject isolation, exam flow smoke (no FROZEN catalog changes).
  */
 import { SUBJECTS } from '../data/demo/subjects';
+import { runClassroomReadySelfChecks } from './classroomReady.selfcheck';
 import { getExamBlueprint } from './exam/examBlueprints';
 import { canBuildExam } from './exam/examTaskSelector';
 import {
@@ -81,6 +82,8 @@ export function runStage17UxSelfChecks(): string[] {
     subjectIds.join(',') === 'russian,mathematics,world,reading,english',
     'subject order and ids stable',
   );
+
+  failures.push(...runClassroomReadySelfChecks());
 
   return failures;
 }

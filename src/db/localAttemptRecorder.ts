@@ -89,6 +89,17 @@ export class LocalAttemptRecorder implements AttemptRecorder {
       (attempt) => !attempt.isCorrect && (userId === undefined || attempt.userId === userId),
     );
   }
+
+  clearUser(userId: string): void {
+    const remaining = this.load().filter((attempt) => attempt.userId !== userId);
+    this.attempts = remaining;
+    writeStoredAttempts(remaining);
+  }
+
+  clearAll(): void {
+    this.attempts = [];
+    writeStoredAttempts([]);
+  }
 }
 
 export const localAttemptRecorder = new LocalAttemptRecorder();

@@ -124,3 +124,79 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+.sectionLead {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.subjectList {
+  display: grid;
+  gap: 8px;
+}
+
+.subject {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-card);
+}
+
+.subject strong {
+  font-size: 15px;
+}
+
+.subjectOn {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.subjectMark {
+  width: 10px;
+  height: 28px;
+  border-radius: 99px;
+}
+
+.teacherNote h3 {
+  margin: 0 0 6px;
+}
+
+.teacherNote p {
+  line-height: 1.45;
+}
+
+@media (min-width: 768px) {
+  .page {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 16px 20px;
+  }
+
+  .hero,
+  .stats,
+  .teacherNote,
+  .spanAll {
+    grid-column: 1 / -1;
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .badges,
+  .historyList,
+  .subjectList {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .badges {
+    display: grid;
+  }
+}

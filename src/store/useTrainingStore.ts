@@ -8,6 +8,7 @@ import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
 import { WORLD_SKILLS } from '../data/taxonomy/world';
 import { READING_SKILLS } from '../data/taxonomy/literaryReading';
 import { ENGLISH_SKILLS } from '../data/taxonomy/english';
+import { skillsForSubject } from '../data/taxonomy/catalog';
 import { getDemoTasks } from '../data/questions/demoTasks';
 import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
 import { selectWeightedRussianSessionTasks } from '../features/russian/russianTrainingSelection';
@@ -17,8 +18,9 @@ import { selectWeightedEnglishSessionTasks } from '../features/english/englishTr
 import { selectAdaptiveTasks } from '../services/adaptiveTaskSelector';
 import { calculateSkillMastery } from '../services/masteryService';
 import { getReviewState } from '../services/reviewScheduler';
-import { getDailyPlan } from '../services/dailyPlanRunner';
+import { getCombinedDailyPlan } from '../services/dailyPlanRunner';
 import { getRemainingDailyTaskIds } from '../services/dailyPlanProgressService';
+import { pickDiagnosticTasks } from '../services/diagnosticTasks';
 import { taskRepository } from '../services/taskRepository';
 import {
   assertUniqueTaskIds,
@@ -115,14 +117,27 @@ export const taskEngine = new TaskEngine(taskRepository.getById, localAttemptRec
 const MISTAKES_COUNT = 5;
 const REVIEW_COUNT = 5;
 
-function mathSkillAttempts(attempts: Attempt[], userId: string): Attempt[] {
+function skillAttempts(attempts: Attempt[], userId: string, subject: SubjectId): Attempt[] {
   return attempts.filter(
     (attempt) =>
       attempt.userId === userId &&
-      attempt.subject === 'mathematics' &&
+      attempt.subject === subject &&
       typeof attempt.skillId === 'string' &&
       attempt.skillId.length > 0,
   );
+}
+
+export function selectDueSkills(
+  attempts: Attempt[],
+  userId: string,
+  subject: SubjectId,
+  nowIso?: string,
+): { id: string }[] {
+  const relevant = skillAttempts(attempts, userId, subject);
+  return skillsForSubject(subject).filter((skill) => {
+    const mastery = calculateSkillMastery(relevant, skill.id, userId);
+    return getReviewState(mastery, nowIso).isReviewDue;
+  });
 }
 
 /**
@@ -130,27 +145,29 @@ function mathSkillAttempts(attempts: Attempt[], userId: string): Attempt[] {
  * DEMO без skillId и чужой userId сюда не попадают.
  */
 export function selectDueMathSkills(attempts: Attempt[], userId: string, nowIso?: string): MathSkill[] {
-  const relevant = mathSkillAttempts(attempts, userId);
-  return MATH_SKILLS.filter((skill) => {
-    const mastery = calculateSkillMastery(relevant, skill.id, userId);
-    return getReviewState(mastery, nowIso).isReviewDue;
-  });
+  const dueIds = new Set(selectDueSkills(attempts, userId, 'mathematics', nowIso).map((skill) => skill.id));
+  return MATH_SKILLS.filter((skill) => dueIds.has(skill.id));
 }
 
 /**
  * Подбор заданий для режима review: только due-навыки, дальше adaptiveTaskSelector.
  */
-export function selectReviewTasks(attempts: Attempt[], userId: string, nowIso?: string): Task[] {
-  const dueSkills = selectDueMathSkills(attempts, userId, nowIso);
+export function selectReviewTasks(
+  attempts: Attempt[],
+  userId: string,
+  subject: SubjectId = 'mathematics',
+  nowIso?: string,
+): Task[] {
+  const dueSkills = selectDueSkills(attempts, userId, subject, nowIso);
   if (dueSkills.length === 0) {
     return [];
   }
   return selectAdaptiveTasks({
     userId,
-    subject: 'mathematics',
+    subject,
     count: REVIEW_COUNT,
-    attempts: mathSkillAttempts(attempts, userId),
-    tasks: taskRepository.getBySubject('mathematics'),
+    attempts: skillAttempts(attempts, userId, subject),
+    tasks: taskRepository.getBySubject(subject),
     skills: dueSkills,
     nowIso,
   });
@@ -170,12 +187,19 @@ function isNewerAttempt(candidate: Attempt, current: Attempt): boolean {
 }
 
 /**
- * Актуальные математические ошибки пользователя: последняя попытка по questionId неверна.
+ * Актуальные ошибки пользователя: последняя попытка по questionId неверна.
  */
-export function selectMistakeTasks(attempts: Attempt[], userId: string): Task[] {
+export function selectMistakeTasks(
+  attempts: Attempt[],
+  userId: string,
+  subject?: SubjectId,
+): Task[] {
   const latestByQuestion = new Map<string, Attempt>();
   for (const attempt of attempts) {
-    if (attempt.userId !== userId || attempt.subject !== 'mathematics') {
+    if (attempt.userId !== userId) {
+      continue;
+    }
+    if (subject && attempt.subject !== subject) {
       continue;
     }
     if (typeof attempt.skillId !== 'string' || attempt.skillId.length === 0) {
@@ -210,7 +234,10 @@ export function selectMistakeTasks(attempts: Attempt[], userId: string): Task[] 
       continue;
     }
     const task = taskRepository.getById(attempt.questionId);
-    if (!task || task.subject !== 'mathematics') {
+    if (!task) {
+      continue;
+    }
+    if (subject && task.subject !== subject) {
       continue;
     }
     seen.add(attempt.questionId);
@@ -238,9 +265,10 @@ interface TrainingState {
   startWorldWeak: (userId: string) => string | null;
   startLiteraryReadingWeak: (userId: string) => string | null;
   startEnglishWeak: (userId: string) => string | null;
-  startReview: (userId: string) => string | null;
-  startDaily: (userId: string) => string | null;
-  startMistakes: (userId: string) => string | null;
+  startReview: (userId: string, subject?: SubjectId) => string | null;
+  startDaily: (userId: string, subjects?: SubjectId[]) => string | null;
+  startMistakes: (userId: string, subject?: SubjectId) => string | null;
+  startDiagnostic: (userId: string, subjects: SubjectId[]) => string | null;
   startMistakeReview: (userId: string, sessionId: string) => string | null;
   setAnswer: (sessionId: string, answer: UserAnswer) => void;
   useHint: (sessionId: string) => void;
@@ -444,8 +472,8 @@ export const useTrainingStore = create<TrainingState>()(
         }));
         return session.id;
       },
-      startReview: (userId) => {
-        const tasks = selectReviewTasks(localAttemptRecorder.getAll(userId), userId);
+      startReview: (userId, subject = 'mathematics') => {
+        const tasks = selectReviewTasks(localAttemptRecorder.getAll(userId), userId, subject);
         if (tasks.length === 0) {
           return null;
         }
@@ -459,20 +487,22 @@ export const useTrainingStore = create<TrainingState>()(
         }));
         return session.id;
       },
-      startDaily: (userId) => {
+      startDaily: (userId, subjects) => {
         const nowIso = new Date().toISOString();
-        const plan = getDailyPlan({
+        const list = subjects && subjects.length > 0 ? subjects : (['mathematics'] as SubjectId[]);
+        const combined = getCombinedDailyPlan({
           userId,
-          subject: 'mathematics',
-          count: 5,
+          subjects: list,
           nowIso,
         });
-        const remainingIds = getRemainingDailyTaskIds({
-          plan,
-          attempts: localAttemptRecorder.getAll(userId),
-          userId,
-          nowIso,
-        });
+        const remainingIds = combined.plans.flatMap((plan) =>
+          getRemainingDailyTaskIds({
+            plan,
+            attempts: localAttemptRecorder.getAll(userId),
+            userId,
+            nowIso,
+          }),
+        );
         const tasks: Task[] = [];
         const seen = new Set<string>();
         for (const taskId of remainingIds) {
@@ -492,6 +522,22 @@ export const useTrainingStore = create<TrainingState>()(
         const session = taskEngine.createSession({
           userId,
           mode: 'daily',
+          tasks,
+        });
+        set((state) => ({
+          sessions: { ...state.sessions, [session.id]: session },
+        }));
+        return session.id;
+      },
+      startDiagnostic: (userId, subjects) => {
+        const tasks = pickDiagnosticTasks(subjects);
+        if (tasks.length === 0) {
+          return null;
+        }
+        assertUniqueTaskIds(tasks);
+        const session = taskEngine.createSession({
+          userId,
+          mode: 'diagnostic',
           tasks,
         });
         set((state) => ({
@@ -578,8 +624,8 @@ export const useTrainingStore = create<TrainingState>()(
         }));
         return session.id;
       },
-      startMistakes: (userId) => {
-        const tasks = selectMistakeTasks(localAttemptRecorder.getAll(userId), userId);
+      startMistakes: (userId, subject) => {
+        const tasks = selectMistakeTasks(localAttemptRecorder.getAll(userId), userId, subject);
         if (tasks.length === 0) {
           return null;
         }

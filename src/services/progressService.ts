@@ -420,6 +420,19 @@ export function getChildProgress(attempts: Attempt[], userId: string): ChildProg
   };
 }
 
+export function getOverallSubjectScore(
+  scores: Record<SubjectId, number | null>,
+  subjects: readonly SubjectId[],
+): number | null {
+  const values = subjects
+    .map((id) => scores[id])
+    .filter((value): value is number => value !== null);
+  if (values.length === 0) {
+    return null;
+  }
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
 export function formatScoreLabel(score: number | null): string {
   return score === null ? 'Нет данных' : `${score}%`;
 }
@@ -435,7 +448,7 @@ export function getSubjectStatusLabel(subjectId: SubjectId, progress: ChildProgr
   }
   const weakForSubject = progress.weakSkills.filter((item) => item.skill.subjectId === subjectId);
   if (weakForSubject.length > 0) {
-    return 'Есть слабые темы';
+    return 'Надо подтянуть';
   }
   if (score < 50) {
     return 'Нужно повторение';
@@ -443,17 +456,21 @@ export function getSubjectStatusLabel(subjectId: SubjectId, progress: ChildProgr
   return 'Хорошо идёт';
 }
 
-export function getReadinessCaption(progress: ChildProgress): string {
-  const withData = SUBJECT_IDS.filter((id) => progress.subjectScores[id] !== null);
+export function getReadinessCaption(
+  progress: ChildProgress,
+  subjects?: readonly SubjectId[],
+): string {
+  const ids = subjects && subjects.length > 0 ? subjects : SUBJECT_IDS;
+  const withData = ids.filter((id) => progress.subjectScores[id] !== null);
   if (withData.length === 0) {
     return progress.stats.totalAttempts === 0
       ? 'Начни тренировку, чтобы появился прогресс.'
-      : 'Нет данных по навыкам предметов.';
+      : 'Нет данных по навыкам выбранных предметов.';
   }
-  if (withData.length === 1 && withData[0] === 'mathematics') {
-    return 'Считается по ответам в математических навыках.';
+  if (ids.length === 1) {
+    return 'Считается по ответам в выбранном предмете.';
   }
-  return 'Считается по ответам во всех тренируемых предметах.';
+  return 'Считается по ответам в выбранных предметах.';
 }
 
 export function getHomeRecommendation(progress: ChildProgress): string {

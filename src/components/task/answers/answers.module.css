@@ -79,3 +79,18 @@
   color: var(--color-text-secondary);
   font-size: 14px;
 }
+
+@media (min-width: 768px) {
+  .list {
+    gap: 12px;
+  }
+
+  .option {
+    font-size: 18px;
+    padding: 14px 18px;
+  }
+
+  .input {
+    font-size: 22px;
+  }
+}

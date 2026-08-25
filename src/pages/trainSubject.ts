@@ -39,60 +39,44 @@ export type TrainModeConfig = {
 };
 
 export function modesForSubject(subject: TrainSubject): TrainModeConfig[] {
-  const subjectGenitive =
-    subject === 'russian'
-      ? 'русского языка'
-      : subject === 'world'
-        ? 'окружающего мира'
-        : subject === 'reading'
-          ? 'литературного чтения'
-          : subject === 'english'
-            ? 'английского языка'
-            : 'математики';
-  const mathOnlyDisabled = subject !== 'mathematics';
+  const bySubject = subjectTitle(subject);
   return [
     {
       id: 'quick',
       title: 'Быстрая тренировка',
-      text: `5 заданий по ${subjectGenitive} с умным подбором`,
+      text: `5 заданий по ${bySubject} с умным подбором`,
     },
     {
       id: 'normal',
       title: 'Обычная тренировка',
-      text: `До 10 заданий по ${subjectGenitive} с умным подбором`,
+      text: `До 10 заданий по ${bySubject} с умным подбором`,
     },
     {
       id: 'random',
       title: 'Случайная тренировка',
-      text: `10 случайных заданий по ${subjectGenitive}`,
+      text: `10 случайных заданий по ${bySubject}`,
     },
-    { id: 'weak', title: 'Слабые места', text: 'Тренировка по твоим слабым навыкам' },
+    { id: 'weak', title: 'Надо подтянуть', text: 'Повтори темы, которые пока идут хуже' },
     { id: 'topic', title: 'Повторение темы', text: 'Задания одной выбранной темы, до 10' },
     {
       id: 'mistakes',
       title: 'Работа над ошибками',
       text: 'Повторение заданий, где были ошибки',
-      disabled: mathOnlyDisabled,
-      mathOnly: true,
     },
     {
       id: 'review',
       title: 'Повторение',
       text: 'Задания, которые пора повторить',
-      disabled: mathOnlyDisabled,
-      mathOnly: true,
     },
     {
       id: 'daily',
       title: 'Ежедневный план',
-      text: '5 заданий на сегодня',
-      disabled: mathOnlyDisabled,
-      mathOnly: true,
+      text: 'Задания на сегодня по этому предмету',
     },
     {
       id: 'exam',
       title: 'Пройти ВПР',
-      text: 'Полный экзаменационный вариант по структуре ВПР-2027',
+      text: 'Тренировочный вариант: таймер и те же типы заданий. Это не официальный бланк.',
     },
   ];
 }

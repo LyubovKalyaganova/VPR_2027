@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { SUBJECTS } from '../data/demo/subjects';
+import { visibleSubjects } from '../data/taxonomy/catalog';
 import { PROGRESS_LEVELS } from '../data/demo/progress';
 import { localAttemptRecorder } from '../db';
 import {
   formatScoreCompact,
   formatScoreLabel,
   getChildProgress,
+  getOverallSubjectScore,
   getProgressLevelIndex,
   getReadinessCaption,
   getSubjectSkillProgress,
@@ -48,20 +50,14 @@ const PATH_CLASS: Record<LearningPathMarker, string> = {
 
 const SUBJECT_IDS: SubjectId[] = ['mathematics', 'russian', 'world', 'reading', 'english'];
 
-function averageSubjectScore(scores: Record<SubjectId, number | null>): number | null {
-  const values = SUBJECT_IDS.map((id) => scores[id]).filter((value): value is number => value !== null);
-  if (values.length === 0) {
-    return null;
-  }
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
-
 export function ProgressPage() {
   const profile = useUserStore((state) => state.profile);
   const userId = profile?.userId ?? '';
   const attempts = profile ? localAttemptRecorder.getAll(userId) : [];
   const progress = getChildProgress(attempts, userId);
-  const overallScore = averageSubjectScore(progress.subjectScores) ?? progress.mathScore;
+  const subjects = visibleSubjects(profile?.selectedSubjects);
+  const selectedIds = subjects.map((subject) => subject.id);
+  const overallScore = getOverallSubjectScore(progress.subjectScores, selectedIds) ?? progress.mathScore;
   const skillSections = getSkillMasteryView(progress.mathSkills);
   const learningPath = getLearningPathView(progress.mathSkills);
   const levelIndex = getProgressLevelIndex(progress);
@@ -73,7 +69,7 @@ export function ProgressPage() {
       {!hasAttempts ? (
         <Card padding="sm" className={styles.emptyState}>
           <h2>Ты ещё не тренировался</h2>
-          <p>Начни с любого предмета — здесь появятся твои результаты, сильные и слабые навыки.</p>
+          <p>Начни с любого предмета — здесь появятся результаты и темы, которые надо подтянуть.</p>
           <Link to="/subjects" className={styles.emptyLink}>
             Выбрать предмет
           </Link>
@@ -84,15 +80,15 @@ export function ProgressPage() {
         <div>
           <p className={styles.kicker}>Общая готовность</p>
           <h2>{formatScoreLabel(overallScore)}</h2>
-          <p>{getReadinessCaption(progress)}</p>
+          <p>{getReadinessCaption(progress, selectedIds)}</p>
         </div>
         <ProgressBar value={overallScore ?? 0} ariaLabel="Общая готовность" />
       </Card>
 
-      <section>
+      <section className={styles.panel}>
         <h2>По предметам</h2>
         <div className={styles.subjects}>
-          {SUBJECTS.map((subject) => {
+          {subjects.map((subject) => {
             const score = progress.subjectScores[subject.id];
             return (
               <Link key={subject.id} to={`/subjects/${subject.id}`}>
@@ -110,18 +106,21 @@ export function ProgressPage() {
         </div>
       </section>
 
-      <section>
-        <h2>Слабые навыки</h2>
+      <section className={styles.panel}>
+        <h2>Надо подтянуть</h2>
         <div className={styles.weak}>
           {progress.weakSkills.length === 0 ? (
             <Card padding="sm" className={styles.weakItem}>
               <div>
-                <strong>Пока нет слабых навыков</strong>
-                <span>Они появятся после нескольких тренировок</span>
+                <strong>Пока подтягивать нечего</strong>
+                <span>Темы появятся после тренировок, если что-то пойдёт хуже</span>
               </div>
             </Card>
           ) : (
-            progress.weakSkills.slice(0, 8).map((item) => {
+            progress.weakSkills
+              .filter((item) => selectedIds.includes(item.skill.subjectId))
+              .slice(0, 8)
+              .map((item) => {
               const subject = SUBJECTS.find((entry) => entry.id === item.skill.subjectId);
               return (
                 <Card key={item.skill.id} padding="sm" className={styles.weakItem}>
@@ -140,7 +139,7 @@ export function ProgressPage() {
       </section>
 
       {hasMathData ? (
-        <section>
+        <section className={styles.spanAll}>
           <p className={styles.kicker}>Путь по математике</p>
           <h2>Что уже освоено</h2>
           <p className={styles.sectionLead}>
@@ -188,7 +187,7 @@ export function ProgressPage() {
       ) : null}
 
       {hasMathData && levelIndex >= 0 ? (
-        <section>
+        <section className={styles.panel}>
           <h2>Карта прогресса</h2>
           <div className={styles.levels}>
             {PROGRESS_LEVELS.map((level, index) => (
@@ -205,7 +204,7 @@ export function ProgressPage() {
       ) : null}
 
       {hasMathData ? (
-        <section>
+        <section className={styles.spanAll}>
           <h2>Навыки · математика</h2>
           <div className={styles.skills}>
             {skillSections.map((section) => (
@@ -238,7 +237,7 @@ export function ProgressPage() {
         </section>
       ) : null}
 
-      {SUBJECT_IDS.filter((id) => id !== 'mathematics').map((subjectId) => {
+      {SUBJECT_IDS.filter((id) => id !== 'mathematics' && selectedIds.includes(id)).map((subjectId) => {
         const skills = getSubjectSkillProgress(attempts, userId, subjectId);
         const practiced = skills.some((item) => item.mastery.status !== 'new');
         if (!practiced) {
@@ -247,7 +246,7 @@ export function ProgressPage() {
         const weak = getWeakSkillProgress(skills).slice(0, 3);
         const subject = SUBJECTS.find((entry) => entry.id === subjectId);
         return (
-          <section key={subjectId}>
+          <section key={subjectId} className={styles.panel}>
             <h2>Навыки · {subject?.title ?? subjectId}</h2>
             {weak.length > 0 ? (
               <Card padding="sm" className={styles.weakItem}>
@@ -255,7 +254,7 @@ export function ProgressPage() {
               </Card>
             ) : (
               <Card padding="sm" className={styles.weakItem}>
-                <p className={styles.sectionLead}>Слабых навыков пока нет — так держать!</p>
+                <p className={styles.sectionLead}>Пока подтягивать нечего — так держать!</p>
               </Card>
             )}
           </section>

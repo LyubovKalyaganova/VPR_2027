@@ -299,3 +299,27 @@
   color: var(--color-text-secondary);
   line-height: 1.45;
 }
+
+@media (min-width: 768px) {
+  .page {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 20px 24px;
+  }
+
+  .emptyState,
+  .overall,
+  .spanAll {
+    grid-column: 1 / -1;
+  }
+
+  .skills {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+  }
+
+  .subjects,
+  .weak {
+    gap: 10px;
+  }
+}

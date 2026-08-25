@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { SUBJECTS } from '../data/demo/subjects';
+import { visibleSubjectIds } from '../data/taxonomy/catalog';
 import { localAttemptRecorder } from '../db';
 import { getAchievements, getNextAchievementHint } from '../services/achievementService';
-import { getDailyPlanHistory } from '../services/dailyPlanHistoryService';
+import { getMergedDailyPlanHistory } from '../services/dailyPlanHistoryService';
 import {
   formatScoreLabel,
   getChildProgress,
+  getOverallSubjectScore,
   minutesFromMs,
 } from '../services/progressService';
 import { getMotivationView } from '../services/motivationView';
+import { clearDeviceLearningStorage } from '../services/deviceReset';
+import { useExamStore } from '../store/useExamStore';
+import { useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
+import type { SubjectId } from '../types';
 import { Avatar, Button, Card, Modal } from '../components/ui';
 import styles from './ProfilePage.module.css';
 
@@ -38,16 +44,16 @@ function formatHistoryDate(date: string): string {
 }
 
 export function ProfilePage() {
-  const navigate = useNavigate();
   const profile = useUserStore((state) => state.profile);
-  const resetOnboarding = useUserStore((state) => state.resetOnboarding);
+  const updateProfile = useUserStore((state) => state.updateProfile);
   const [resetOpen, setResetOpen] = useState(false);
   const attempts = profile ? localAttemptRecorder.getAll(profile.userId) : [];
   const progress = getChildProgress(attempts, profile?.userId ?? '');
+  const selectedIds = visibleSubjectIds(profile?.selectedSubjects);
+  const overallScore = getOverallSubjectScore(progress.subjectScores, selectedIds);
   const planHistory = profile
-    ? getDailyPlanHistory({
+    ? getMergedDailyPlanHistory({
         userId: profile.userId,
-        subject: 'mathematics',
         attempts,
       })
     : [];
@@ -82,7 +88,7 @@ export function ProfilePage() {
 
       <div className={styles.stats}>
         <Card padding="sm">
-          <b>{formatScoreLabel(progress.mathScore)}</b>
+          <b>{formatScoreLabel(overallScore)}</b>
           <span>Готовность</span>
         </Card>
         <Card padding="sm">
@@ -127,7 +133,7 @@ export function ProfilePage() {
         )}
       </section>
 
-      <section>
+      <section className={styles.spanAll}>
         <h3>Ваш прогресс</h3>
         <Card padding="sm" className={styles.motivation}>
           <p className={styles.mastered}>{motivation.masteredPhrase}</p>
@@ -151,7 +157,7 @@ export function ProfilePage() {
         </Card>
       </section>
 
-      <section>
+      <section className={styles.spanAll}>
         <h3>Мои достижения</h3>
         <div className={styles.badges}>
           {achievements.map((item) => (
@@ -167,23 +173,65 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <Button variant="secondary" fullWidth onClick={() => setResetOpen(true)}>
-        Пройти знакомство заново
+      <section className={styles.spanAll}>
+        <h3>Предметы</h3>
+        <p className={styles.sectionLead}>Можно изменить, если класс готовится не ко всем предметам.</p>
+        <div className={styles.subjectList}>
+          {SUBJECTS.map((subject) => {
+            const selected = selectedIds.includes(subject.id);
+            return (
+              <button
+                key={subject.id}
+                type="button"
+                className={`${styles.subject} ${selected ? styles.subjectOn : ''}`}
+                onClick={() => {
+                  const next: SubjectId[] = selected
+                    ? selectedIds.filter((id) => id !== subject.id)
+                    : [...selectedIds, subject.id];
+                  if (next.length === 0) {
+                    return;
+                  }
+                  updateProfile({ selectedSubjects: next });
+                }}
+              >
+                <span className={styles.subjectMark} style={{ background: subject.accent }} />
+                <strong>{subject.title}</strong>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <Card padding="sm" className={styles.teacherNote}>
+        <h3>Для учителя</h3>
+        <p>
+          Данные остаются только на этом устройстве. Сейчас один профиль на телефон или планшет: чтобы начать заново
+          под другим именем, нажмите «Очистить данные» (прогресс текущего ученика сотрётся). Переключения между
+          несколькими учениками без сброса пока нет. Это учебный тренажёр, не официальная ВПР.
+        </p>
+      </Card>
+
+      <Button className={styles.spanAll} variant="secondary" fullWidth onClick={() => setResetOpen(true)}>
+        Очистить данные на этом устройстве
       </Button>
 
       <Modal
         open={resetOpen}
-        title="Сбросить знакомство?"
-        confirmLabel="Сбросить"
+        title="Удалить все данные?"
+        confirmLabel="Удалить"
         cancelLabel="Оставить"
         onClose={() => setResetOpen(false)}
         onConfirm={() => {
-          resetOnboarding();
-          setResetOpen(false);
-          navigate('/onboarding', { replace: true });
+          clearDeviceLearningStorage();
+          void useUserStore.persist.clearStorage();
+          void useTrainingStore.persist.clearStorage();
+          void useExamStore.persist.clearStorage();
+          useUserStore.setState({ profile: null });
+          window.location.replace('/onboarding');
         }}
       >
-        Имя и выбранные предметы на этом устройстве будут очищены. Задания и сервер при этом не используются.
+        Имя, прогресс и история занятий на этом телефоне будут удалены. Сервер не используется — данные никуда не
+        отправляются.
       </Modal>
     </div>
   );

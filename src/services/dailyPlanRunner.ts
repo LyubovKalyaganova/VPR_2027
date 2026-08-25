@@ -1,4 +1,4 @@
-import { MATH_SKILLS } from '../data/taxonomy/math';
+import { dailyPlanCountForSelection, skillsForSubject } from '../data/taxonomy/catalog';
 import { localAttemptRecorder } from '../db';
 import type { SubjectId } from '../types';
 import { createDailyPlan, type DailyPlan, type DailyPlanItem } from './dailyPlanService';
@@ -22,12 +22,12 @@ export type GetDailyPlanInput = {
   storage?: DailyPlanStorageBackend;
 };
 
-function skillsForSubject(subject: SubjectId): readonly { id: string }[] {
-  if (subject === 'mathematics') {
-    return MATH_SKILLS;
-  }
-  return [];
-}
+export type CombinedDailyPlan = {
+  subjects: SubjectId[];
+  plans: DailyPlan[];
+  items: DailyPlanItem[];
+  totalCount: number;
+};
 
 function restoreDailyPlan(input: {
   userId: string;
@@ -95,4 +95,30 @@ export function getDailyPlan(input: GetDailyPlanInput): DailyPlan {
   });
   saveDailyPlan(input.userId, input.subject, date, plan.items, storage);
   return plan;
+}
+
+export function getCombinedDailyPlan(input: {
+  userId: string;
+  subjects: readonly SubjectId[];
+  nowIso?: string;
+  storage?: DailyPlanStorageBackend;
+}): CombinedDailyPlan {
+  const subjects = input.subjects.length > 0 ? [...input.subjects] : (['mathematics'] as SubjectId[]);
+  const count = dailyPlanCountForSelection(subjects.length);
+  const plans = subjects.map((subject) =>
+    getDailyPlan({
+      userId: input.userId,
+      subject,
+      count,
+      nowIso: input.nowIso,
+      storage: input.storage,
+    }),
+  );
+  const items = plans.flatMap((plan) => plan.items);
+  return {
+    subjects,
+    plans,
+    items,
+    totalCount: items.length,
+  };
 }

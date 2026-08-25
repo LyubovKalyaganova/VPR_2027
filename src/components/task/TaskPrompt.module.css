@@ -40,3 +40,24 @@
     font-size: 15px;
   }
 }
+
+@media (min-width: 768px) {
+  .wrap {
+    gap: 16px;
+  }
+
+  .question {
+    font-size: 24px;
+  }
+
+  .passage {
+    font-size: 17px;
+    line-height: 1.55;
+  }
+
+  .image {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

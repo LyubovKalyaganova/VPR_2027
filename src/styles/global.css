@@ -13,10 +13,21 @@
   overflow-x: clip;
 }
 
-@media (min-width: 520px) {
+@media (min-width: 520px) and (max-width: 767px) {
   .appCanvas {
     box-shadow: 0 0 0 1px rgba(32, 36, 42, 0.04), 0 18px 50px rgba(32, 36, 42, 0.08);
     min-height: 100dvh;
+  }
+}
+
+@media (min-width: 768px) {
+  body {
+    background: var(--color-bg);
+  }
+
+  .appCanvas {
+    max-width: min(var(--app-max-width), 100%);
+    box-shadow: none;
   }
 }
 

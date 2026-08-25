@@ -46,3 +46,21 @@
   display: grid;
   gap: 10px;
 }
+
+@media (min-width: 768px) {
+  .page {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: start;
+    gap: 16px 24px;
+  }
+
+  .hero {
+    grid-column: 1 / -1;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+    max-width: 560px;
+  }
+}

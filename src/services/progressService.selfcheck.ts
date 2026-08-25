@@ -2,6 +2,7 @@ import type { Attempt, Difficulty } from '../types';
 import { isMasteredSkill, isWeakSkill } from './masteryService';
 import {
   getChildProgress,
+  getOverallSubjectScore,
   getSectionScore,
   getTopicScore,
   getUserProgress,
@@ -263,6 +264,8 @@ export function runProgressSelfChecks(): string[] {
   const second = getUserProgress(mixedAttempts, USER);
   check(JSON.stringify(first) === JSON.stringify(second), '18. повторный расчёт без изменения Attempt даёт тот же результат');
   check(getUserProgress(mixedAttempts, '').totalAttempts === 0, 'пустой userId не падает и не считает чужое');
+  check(getOverallSubjectScore({ mathematics: 80, russian: 60, world: null, reading: null, english: null }, ['mathematics', 'russian']) === 70, 'overall selected subjects average');
+  check(getOverallSubjectScore({ mathematics: null, russian: null, world: null, reading: null, english: null }, ['english']) === null, 'overall empty stays null');
 
   return failures;
 }

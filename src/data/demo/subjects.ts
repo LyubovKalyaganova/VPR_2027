@@ -95,7 +95,7 @@ export const OVERALL_READINESS = 76;
 
 export const SUBJECT_STATUS: Record<SubjectId, string> = {
   russian: 'Хорошо идёт',
-  mathematics: 'Есть слабые темы',
+  mathematics: 'Надо подтянуть',
   world: 'Нужно повторение',
   reading: 'Уверенный уровень',
   english: 'Стоит подтянуть',

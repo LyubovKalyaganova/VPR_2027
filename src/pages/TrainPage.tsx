@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SUBJECTS } from '../data/demo/subjects';
 import { Button, Card } from '../components/ui';
 import { MATH_TOPICS } from '../data/taxonomy/math';
 import { RUSSIAN_TOPICS } from '../data/taxonomy/russian';
@@ -9,7 +8,8 @@ import { ENGLISH_TOPICS } from '../data/taxonomy/english';
 import { READING_TOPICS } from '../data/taxonomy/literaryReading';
 import { localAttemptRecorder } from '../db';
 import { taskRepository } from '../services/taskRepository';
-import { selectDueMathSkills, useTrainingStore } from '../store/useTrainingStore';
+import { visibleSubjects } from '../data/taxonomy/catalog';
+import { selectDueSkills, useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
 import type { TrainingMode } from '../types';
 import {
@@ -45,14 +45,14 @@ function taskCountLabel(count: number): string {
   return `${count} заданий`;
 }
 
-const TRAIN_SUBJECTS: TrainSubject[] = ['mathematics', 'russian', 'world', 'reading', 'english'];
-
 export function TrainPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const subject = parseTrainSubject(searchParams.get('subject'));
+  const requested = parseTrainSubject(searchParams.get('subject'));
   const initialMode = searchParams.get('mode');
   const profile = useUserStore((state) => state.profile);
+  const visibleIds = visibleSubjects(profile?.selectedSubjects).map((item) => item.id);
+  const subject = visibleIds.includes(requested) ? requested : parseTrainSubject(visibleIds[0]);
   const startDemo = useTrainingStore((state) => state.startDemo);
   const startMath = useTrainingStore((state) => state.startMath);
   const startRussian = useTrainingStore((state) => state.startRussian);
@@ -75,9 +75,6 @@ export function TrainPage() {
   const [selected, setSelected] = useState<TrainingMode>(() => {
     if (initialMode === 'weak' || initialMode === 'topic' || initialMode === 'random') {
       return initialMode;
-    }
-    if (initialMode === 'exam') {
-      return 'exam';
     }
     return 'quick';
   });
@@ -102,24 +99,21 @@ export function TrainPage() {
     Boolean(profile) && selected === 'topic' && selectedTopicId !== null && selectedTopicCount > 0;
   const canStartWeighted = Boolean(profile) && isWeightedStartMode(selected);
   const canStartWeak = Boolean(profile) && selected === 'weak';
-  const canStartReview = Boolean(profile) && selected === 'review' && subject === 'mathematics';
-  const canStartDaily = Boolean(profile) && selected === 'daily' && subject === 'mathematics';
-  const canStartMistakes = Boolean(profile) && selected === 'mistakes' && subject === 'mathematics';
-  const canStartExam = Boolean(profile) && selected === 'exam';
+  const canStartReview = Boolean(profile) && selected === 'review';
+  const canStartDaily = Boolean(profile) && selected === 'daily';
+  const canStartMistakes = Boolean(profile) && selected === 'mistakes';
   const canStart =
-    selected === 'exam'
-      ? canStartExam
-      : selected === 'topic'
-        ? canStartTopic
-        : selected === 'weak'
-          ? canStartWeak
-          : selected === 'review'
-            ? canStartReview
-            : selected === 'daily'
-              ? canStartDaily
-              : selected === 'mistakes'
-                ? canStartMistakes
-                : canStartWeighted;
+    selected === 'topic'
+      ? canStartTopic
+      : selected === 'weak'
+        ? canStartWeak
+        : selected === 'review'
+          ? canStartReview
+          : selected === 'daily'
+            ? canStartDaily
+            : selected === 'mistakes'
+              ? canStartMistakes
+              : canStartWeighted;
 
   function handleSubjectChange(next: TrainSubject) {
     setNotice(null);
@@ -138,10 +132,6 @@ export function TrainPage() {
 
   function handleStart() {
     if (!profile) {
-      return;
-    }
-    if (selected === 'exam') {
-      navigate(`/exam/${subject}/start`);
       return;
     }
     if (selected === 'topic') {
@@ -177,16 +167,16 @@ export function TrainPage() {
                 ? startEnglishWeak(profile.userId)
                 : startWeak(profile.userId);
       if (!sessionId) {
-        setNotice('Пока нет заданий для тренировки слабых мест');
+        setNotice('Пока нет заданий, которые надо подтянуть');
         return;
       }
       navigate(`/train/session/${sessionId}`);
       return;
     }
     if (selected === 'review') {
-      const sessionId = startReview(profile.userId);
+      const sessionId = startReview(profile.userId, subject);
       if (!sessionId) {
-        const due = selectDueMathSkills(localAttemptRecorder.getAll(profile.userId), profile.userId);
+        const due = selectDueSkills(localAttemptRecorder.getAll(profile.userId), profile.userId, subject);
         setNotice(
           due.length === 0 ? 'На сегодня повторение не требуется' : 'Пока нет заданий для повторения',
         );
@@ -196,7 +186,7 @@ export function TrainPage() {
       return;
     }
     if (selected === 'daily') {
-      const sessionId = startDaily(profile.userId);
+      const sessionId = startDaily(profile.userId, [subject]);
       if (!sessionId) {
         setNotice('На сегодня заданий нет');
         return;
@@ -205,7 +195,7 @@ export function TrainPage() {
       return;
     }
     if (selected === 'mistakes') {
-      const sessionId = startMistakes(profile.userId);
+      const sessionId = startMistakes(profile.userId, subject);
       if (!sessionId) {
         setNotice('Пока нет ошибок для повторения');
         return;
@@ -242,34 +232,30 @@ export function TrainPage() {
   }
 
   const cardTitle =
-    selected === 'exam'
-      ? 'Экзаменационный режим'
-      : selected === 'topic'
-        ? 'Повторение темы'
-        : selected === 'review'
-          ? 'Повторение'
-          : selected === 'daily'
-            ? 'Ежедневный план'
-            : `Тренировка по ${subjectTitle(subject)}`;
+    selected === 'topic'
+      ? 'Повторение темы'
+      : selected === 'review'
+        ? 'Повторение'
+        : selected === 'daily'
+          ? 'Ежедневный план'
+          : `Тренировка по ${subjectTitle(subject)}`;
 
   const cardText =
-    selected === 'exam'
-      ? 'Отдельный режим ВПР: таймер, без подсказок и без мгновенной проверки. Это не обычная тренировка.'
-      : selected === 'topic'
-        ? 'Выбери тему. Это учебные задания, а не официальный вариант ВПР.'
-        : selected === 'review'
-          ? 'Задания, которые пора повторить (пока только математика)'
-          : selected === 'daily'
-            ? '5 заданий на сегодня (пока только математика)'
-            : 'Учебный набор заданий с подсказками и проверкой ответа.';
+    selected === 'topic'
+      ? 'Выбери тему. Это учебные задания, а не официальный вариант ВПР.'
+      : selected === 'review'
+        ? 'Задания, которые пора повторить'
+        : selected === 'daily'
+          ? 'Задания на сегодня по этому предмету'
+          : 'Учебный набор заданий с подсказками и проверкой ответа.';
 
   return (
     <div className={styles.page}>
-      <p className={styles.lead}>Выбери предмет и режим. Тренировка и ВПР — разные режимы.</p>
+      <p className={styles.lead}>Выбери предмет и режим. Тренировка и пробная ВПР — разные режимы.</p>
 
       <section className={styles.subjectPicker} aria-label="Выбор предмета">
-        {TRAIN_SUBJECTS.map((item) => {
-          const meta = SUBJECTS.find((entry) => entry.id === item);
+        {visibleSubjects(profile?.selectedSubjects).map((meta) => {
+          const item = meta.id;
           return (
             <button
               key={item}
@@ -277,7 +263,7 @@ export function TrainPage() {
               className={`${styles.subjectChip} ${subject === item ? styles.subjectChipActive : ''}`}
               onClick={() => handleSubjectChange(item)}
             >
-              <span className={styles.subjectDot} style={{ background: meta?.accent }} />
+              <span className={styles.subjectDot} style={{ background: meta.accent }} />
               {subjectLabel(item)}
             </button>
           );
@@ -328,8 +314,8 @@ export function TrainPage() {
         <h2 className={styles.sectionTitle}>ВПР</h2>
         <button
           type="button"
-          className={`${styles.examMode} ${selected === 'exam' ? styles.examSelected : ''}`}
-          onClick={() => handleSelectMode('exam')}
+          className={styles.examMode}
+          onClick={() => navigate(`/exam/${subject}/start`)}
         >
           <strong>{examMode.title}</strong>
           <span>{examMode.text}</span>
@@ -344,7 +330,7 @@ export function TrainPage() {
       {notice ? <p className={styles.notice}>{notice}</p> : null}
 
       <Button fullWidth onClick={handleStart} disabled={!canStart}>
-        {selected === 'exam' ? 'Перейти к ВПР' : 'Начать тренировку'}
+        Начать тренировку
       </Button>
       <Button variant="ghost" fullWidth onClick={handleStartDemo}>
         Пробная тренировка

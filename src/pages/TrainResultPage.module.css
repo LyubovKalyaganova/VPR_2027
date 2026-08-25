@@ -105,3 +105,18 @@
     align-items: flex-start;
   }
 }
+
+@media (min-width: 768px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .skillList {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actions {
+    grid-template-columns: 1fr 1fr;
+    max-width: 560px;
+  }
+}

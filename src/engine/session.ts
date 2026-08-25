@@ -1,4 +1,4 @@
-import type { TrainingMode } from '../types';
+import type { Task, TrainingMode } from '../types';
 
 export type UserAnswer = string | number | string[] | Record<string, string> | null;
 
@@ -30,6 +30,8 @@ export interface TaskSession {
   hintsUsedOnCurrent: 0 | 1 | 2 | 3;
   presentations: Record<string, TaskPresentation>;
   results: SessionItemResult[];
+  /** Снимок заданий сессии: live-генерация не лежит в общем банке. */
+  tasks?: Task[];
   startedAt: number;
   itemStartedAt: number;
   finishedAt?: number;

@@ -218,6 +218,23 @@ export function listStoredDailyPlans(
   return readSnapshot(backend).plans.filter((plan) => plan.userId === userId && plan.subject === subject);
 }
 
+export function listStoredDailyPlansForUser(
+  userId: string,
+  backend: DailyPlanStorageBackend = localDailyPlanStorage,
+): StoredDailyPlan[] {
+  return readSnapshot(backend).plans.filter((plan) => plan.userId === userId);
+}
+
+export function clearDailyPlansForUser(
+  userId: string,
+  backend: DailyPlanStorageBackend = localDailyPlanStorage,
+  today = getCalendarDate(new Date().toISOString()),
+): void {
+  const snapshot = readSnapshot(backend);
+  const plans = snapshot.plans.filter((plan) => plan.userId !== userId);
+  writeSnapshot(backend, { version: DAILY_PLANS_STORAGE_VERSION, plans }, today);
+}
+
 export function saveDailyPlan(
   userId: string,
   subject: SubjectId,

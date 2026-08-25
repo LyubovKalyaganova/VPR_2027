@@ -102,3 +102,16 @@ export function getRemainingDailyTaskIds(input: GetDailyPlanProgressInput): stri
   }
   return remaining;
 }
+
+export function mergeDailyPlanProgress(parts: readonly DailyPlanProgress[]): DailyPlanProgress {
+  const total = parts.reduce((sum, part) => sum + part.total, 0);
+  const completed = parts.reduce((sum, part) => sum + part.completed, 0);
+  const completedQuestionIds = parts.flatMap((part) => part.completedQuestionIds);
+  return {
+    total,
+    completed,
+    remaining: Math.max(0, total - completed),
+    isCompleted: total > 0 && completed === total,
+    completedQuestionIds,
+  };
+}

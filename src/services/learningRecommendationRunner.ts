@@ -1,4 +1,4 @@
-import { MATH_SKILLS } from '../data/taxonomy/math';
+import { skillsForSubject } from '../data/taxonomy/catalog';
 import { localAttemptRecorder } from '../db';
 import type { Attempt, SubjectId } from '../types';
 import { selectMistakeTasks } from '../store/useTrainingStore';
@@ -128,7 +128,8 @@ function readDailyPlanState(input: {
   };
 }
 
-function collectMathSkillIds(
+function collectSubjectSkillIds(
+  subject: SubjectId,
   attempts: Attempt[],
   userId: string,
   nowIso: string,
@@ -142,8 +143,9 @@ function collectMathSkillIds(
   const weakSkillIds: string[] = [];
   const newSkillIds: string[] = [];
   const reinforcementSkillIds: string[] = [];
+  const skills = skillsForSubject(subject);
 
-  for (const skill of MATH_SKILLS) {
+  for (const skill of skills) {
     const mastery = calculateSkillMastery(attempts, skill.id, userId);
     const review = getReviewState(mastery, nowIso);
     const weak = isWeakSkill(mastery);
@@ -170,7 +172,7 @@ function collectMathSkillIds(
     }
   }
 
-  const hasSkillData = newSkillIds.length < MATH_SKILLS.length;
+  const hasSkillData = newSkillIds.length < skills.length;
   return {
     dueSkillIds,
     weakSkillIds,
@@ -203,18 +205,9 @@ export function getLearningRecommendationForUser(
     attempts,
   });
 
-  const skillIds =
-    subject === 'mathematics'
-      ? collectMathSkillIds(attempts, userId, nowIso)
-      : {
-          dueSkillIds: [],
-          weakSkillIds: [],
-          newSkillIds: [],
-          reinforcementSkillIds: [],
-        };
+  const skillIds = collectSubjectSkillIds(subject, attempts, userId, nowIso);
 
-  const mistakesCount =
-    subject === 'mathematics' ? selectMistakeTasks(attempts, userId).length : 0;
+  const mistakesCount = selectMistakeTasks(attempts, userId, subject).length;
 
   return getLearningRecommendation({
     userId,

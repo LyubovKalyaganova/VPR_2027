@@ -99,11 +99,15 @@ function hasRealMistakes(mistakes: MistakesRecommendationState | undefined): boo
 }
 
 function continueDaily(plan: DailyPlanRecommendationState): LearningRecommendation {
+  const remaining = remainingCount(plan);
+  const notStarted = plan.completed <= 0;
   return {
     type: 'continue-daily',
-    title: 'Продолжить план на сегодня',
-    description: remainingDescription(remainingCount(plan)),
-    reason: 'Сегодня ещё остались задания в плане.',
+    title: notStarted ? 'Начать план на сегодня' : 'Продолжить план на сегодня',
+    description: remainingDescription(remaining),
+    reason: notStarted
+      ? 'Сегодня есть задания в плане.'
+      : 'Сегодня ещё остались задания в плане.',
     action: 'daily',
   };
 }

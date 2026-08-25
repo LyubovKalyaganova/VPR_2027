@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { SUBJECTS } from '../data/demo/subjects';
+import { visibleSubjects } from '../data/taxonomy/catalog';
 import { localAttemptRecorder } from '../db';
 import {
   formatScoreCompact,
@@ -21,7 +21,7 @@ export function SubjectsPage() {
     <div className={styles.page}>
       <p className={styles.lead}>Выбери предмет, чтобы посмотреть карту навыков и начать тренировку.</p>
       <div className={styles.grid}>
-        {SUBJECTS.map((subject) => {
+        {visibleSubjects(profile?.selectedSubjects).map((subject) => {
           const score = progress.subjectScores[subject.id];
           return (
             <Link key={subject.id} to={`/subjects/${subject.id}`}>

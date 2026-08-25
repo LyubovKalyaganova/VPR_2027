@@ -146,7 +146,7 @@ export function SubjectPage() {
             navigate(`${trainPath(subjectId)}&mode=weak`);
           }}
         >
-          Тренировать слабые места
+          Надо подтянуть
         </Button>
       ) : null}
       <Button

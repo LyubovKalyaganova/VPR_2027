@@ -223,9 +223,9 @@ export function runDailyPlanRunnerSelfChecks(): string[] {
     subject: 'russian',
     count: 5,
     nowIso: NOW,
-    storage,
+    storage: createMemoryDailyPlanStorage(),
   });
-  check(otherSubject.items.length === 0, 'I: предмет без таксономии → пустой план, без падения');
+  check(otherSubject.items.length > 0, 'I: русский тоже получает план из банка');
 
   check(localAttemptRecorder.getAll(NEW_USER).length === 0, 'storage: self-check не создал Attempt для new user');
   check(localAttemptRecorder.getAll(HISTORY_USER).length === 0, 'storage: self-check не создал Attempt для history user');

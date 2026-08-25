@@ -24,7 +24,12 @@ export function TrainSessionPage() {
     return <Navigate to={`/train/result/${sessionId}`} replace />;
   }
 
-  const task = taskEngine.getCurrentTask(session);
+  let task;
+  try {
+    task = taskEngine.getCurrentTask(session);
+  } catch {
+    return <Navigate to="/train" replace />;
+  }
   const presentation = taskEngine.getPresentation(session);
   const subject = getSubject(task.subject);
   const hints = collectHints(task);
@@ -45,6 +50,7 @@ export function TrainSessionPage() {
       current={session.currentIndex + 1}
       total={session.taskIds.length}
       showDemoBadge={session.mode === 'demo'}
+      showCheckBadge={session.mode === 'diagnostic'}
     >
       <div className={styles.body} data-task-type={task.taskType} data-task-id={task.id}>
         <TaskPrompt task={task} />

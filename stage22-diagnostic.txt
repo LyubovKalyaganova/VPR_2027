@@ -1,0 +1,132 @@
+﻿=== PROJECT ===
+C:\Projects\VPR_2027
+
+=== GIT ===
+3689678 README: ╨░╨║╤В╤Г╨░╨╗╤М╨╜╤Л╨╣ ╤Б╤В╨░╤В╤Г╤Б Training, VPR Exam, Android RC
+?? scripts/stage22-bluestacks-smoke.mjs ?? scripts/stage22-focused-verify.mjs ?? stage22-artifacts/ ?? stage22-home.png ?? stage22-ui.xml
+
+=== PACKAGE ===
+{
+  "name": "vpr-4-class-2027",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test:math-weights": "node scripts/run-math-weights-check.mjs",
+    "test:math-training-selection": "node scripts/run-math-training-selection-check.mjs",
+    "test:m01-generator": "node scripts/run-m01-generator-check.mjs",
+    "test:m02-generator": "node scripts/run-m02-generator-check.mjs",
+    "test:m03-generator": "node scripts/run-m03-generator-check.mjs",
+    "test:m04-generator": "node scripts/run-m04-generator-check.mjs",
+    "test:m05-generator": "node scripts/run-m05-generator-check.mjs",
+    "test:m06-generator": "node scripts/run-m06-generator-check.mjs",
+    "test:m07-generator": "node scripts/run-m07-generator-check.mjs",
+    "test:m08-generator": "node scripts/run-m08-generator-check.mjs",
+    "test:m09-generator": "node scripts/run-m09-generator-check.mjs",
+    "test:m10-generator": "node scripts/run-m10-generator-check.mjs",
+    "test:m11-generator": "node scripts/run-m11-generator-check.mjs",
+    "test:m12-generator": "node scripts/run-m12-generator-check.mjs",
+    "test:m13-generator": "node scripts/run-m13-generator-check.mjs",
+    "test:m14-generator": "node scripts/run-m14-generator-check.mjs",
+    "test:m15-generator": "node scripts/run-m15-generator-check.mjs",
+    "test:m16-generator": "node scripts/run-m16-generator-check.mjs",
+    "test:m17-generator": "node scripts/run-m17-generator-check.mjs",
+    "test:m18-generator": "node scripts/run-m18-generator-check.mjs",
+    "test:m19-generator": "node scripts/run-m19-generator-check.mjs",
+    "test:m20-generator": "node scripts/run-m20-generator-check.mjs",
+    "test:m21-generator": "node scripts/run-m21-generator-check.mjs",
+    "test:m22-generator": "node scripts/run-m22-generator-check.mjs",
+    "test:m23-generator": "node scripts/run-m23-generator-check.mjs",
+    "test:m24-generator": "node scripts/run-m24-generator-check.mjs",
+    "test:m25-generator": "node scripts/run-m25-generator-check.mjs",
+    "test:m26-generator": "node scripts/run-m26-generator-check.mjs",
+    "test:m27-generator": "node scripts/run-m27-generator-check.mjs",
+    "test:m28-generator": "node scripts/run-m28-generator-check.mjs",
+    "test:m29-generator": "node scripts/run-m29-generator-check.mjs",
+    "test:m30-generator": "node scripts/run-m30-generator-check.mjs",
+    "test:m31-generator": "node scripts/run-m31-generator-check.mjs",
+    "test:m32-generator": "node scripts/run-m32-generator-check.mjs",
+    "test:m33-generator": "node scripts/run-m33-generator-check.mjs",
+    "test:m34-generator": "node scripts/run-m34-generator-check.mjs",
+    "test:m35-generator": "node scripts/run-m35-generator-check.mjs",
+    "test:russian-generators": "node scripts/run-russian-generators-check.mjs",
+    "test:russian-coverage": "node scripts/run-russian-coverage-check.mjs",
+    "test:russian-training-selection": "node scripts/run-russian-training-selection-check.mjs",
+    "test:russian-bank-audit": "node scripts/run-russian-bank-audit-check.mjs",
+    "test:world-generators": "node scripts/run-world-generators-check.mjs",
+    "test:world-coverage": "node scripts/run-world-coverage-check.mjs",
+    "test:world-training-selection": "node scripts/run-world-training-selection-check.mjs",
+    "test:world-bank-audit": "node scripts/run-world-bank-audit-check.mjs",
+    "test:literary-reading-generators": "node scripts/run-literary-reading-generators-check.mjs",
+    "test:literary-reading-coverage": "node scripts/run-literary-reading-coverage-check.mjs",
+    "test:literary-reading-training-selection": "node scripts/run-literary-reading-training-selection-check.mjs",
+    "test:literary-reading-bank-audit": "node scripts/run-literary-reading-bank-audit-check.mjs",
+    "test:english-generators": "node scripts/run-english-generators-check.mjs",
+    "test:english-coverage": "node scripts/run-english-coverage-check.mjs",
+    "test:english-training-selection": "node scripts/run-english-training-selection-check.mjs",
+    "test:english-bank-audit": "node scripts/run-english-bank-audit-check.mjs",
+    "test:progress": "node scripts/run-progress-check.mjs",
+    "test:mastery": "node scripts/run-mastery-check.mjs",
+    "test:adaptive": "node scripts/run-adaptive-check.mjs",
+    "test:attempt-history": "node scripts/run-attempt-history-check.mjs",
+    "test:training-flow": "node scripts/run-training-flow-check.mjs",
+    "test:exam-blueprints": "node scripts/run-exam-check.mjs reportExamBlueprintsSelfChecks",
+    "test:exam-selection": "node scripts/run-exam-check.mjs reportExamSelectionSelfChecks",
+    "test:exam-scoring": "node scripts/run-exam-check.mjs reportExamScoringSelfChecks",
+    "test:exam-timer": "node scripts/run-exam-check.mjs reportExamTimerSelfChecks",
+    "test:exam-persistence": "node scripts/run-exam-check.mjs reportExamPersistenceSelfChecks",
+    "test:exam-flow": "node scripts/run-exam-check.mjs reportExamFlowSelfChecks",
+    "test:ux-routes": "node scripts/run-ux-check.mjs reportStage17UxSelfChecks",
+    "test:subject-isolation": "node scripts/run-ux-check.mjs reportStage17SubjectIsolationSelfChecks",
+    "test:android-integration": "node scripts/run-android-check.mjs reportStage18AndroidSelfChecks",
+    "test:android-persistence": "node scripts/run-android-check.mjs reportStage18PersistenceSelfChecks",
+    "test:device-smoke": "node scripts/run-device-check.mjs reportStage19DeviceSelfChecks",
+    "test:exam-resume": "node scripts/run-device-check.mjs reportStage19ExamResumeSelfChecks",
+    "test:release-audit": "node scripts/run-release-audit.mjs reportStage20ReleaseAudit",
+    "cap:sync": "npm run build && npx cap sync android",
+    "cap:open": "npx cap open android",
+    "android:build": "npm run cap:sync && cd android && .\\gradlew.bat assembleDebug",
+    "android:bundleRelease": "npm run cap:sync && cd android && .\\gradlew.bat bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}
+
+
+=== TRAINING FILES ===
+C:\Projects\VPR_2027\src\features\english\englishTrainingSelection.selfcheck.ts C:\Projects\VPR_2027\src\features\english\englishTrainingSelection.ts C:\Projects\VPR_2027\src\features\english\englishTrainingWeights.ts C:\Projects\VPR_2027\src\features\mathematics\mathTrainingSelection.selfcheck.ts C:\Projects\VPR_2027\src\features\mathematics\mathTrainingSelection.ts C:\Projects\VPR_2027\src\features\mathematics\mathTrainingWeights.selfcheck.ts C:\Projects\VPR_2027\src\features\mathematics\mathTrainingWeights.ts C:\Projects\VPR_2027\src\features\reading\literaryReadingTrainingSelection.selfcheck.ts C:\Projects\VPR_2027\src\features\reading\literaryReadingTrainingSelection.ts C:\Projects\VPR_2027\src\features\reading\literaryReadingTrainingWeights.ts C:\Projects\VPR_2027\src\features\russian\russianTrainingSelection.selfcheck.ts C:\Projects\VPR_2027\src\features\russian\russianTrainingSelection.ts C:\Projects\VPR_2027\src\features\russian\russianTrainingWeights.ts C:\Projects\VPR_2027\src\features\world\worldTrainingSelection.selfcheck.ts C:\Projects\VPR_2027\src\features\world\worldTrainingSelection.ts C:\Projects\VPR_2027\src\features\world\worldTrainingWeights.ts C:\Projects\VPR_2027\src\pages\TrainPage.module.css C:\Projects\VPR_2027\src\pages\TrainPage.tsx C:\Projects\VPR_2027\src\pages\TrainResultPage.module.css C:\Projects\VPR_2027\src\pages\TrainResultPage.tsx C:\Projects\VPR_2027\src\pages\TrainSessionPage.module.css C:\Projects\VPR_2027\src\pages\TrainSessionPage.tsx C:\Projects\VPR_2027\src\pages\trainSubject.ts C:\Projects\VPR_2027\src\services\englishTrainingPool.ts C:\Projects\VPR_2027\src\services\literaryReadingTrainingPool.ts C:\Projects\VPR_2027\src\services\mathTrainingPool.ts C:\Projects\VPR_2027\src\services\russianTrainingPool.ts C:\Projects\VPR_2027\src\services\stage15TrainingFlow.selfcheck.ts C:\Projects\VPR_2027\src\services\trainingSessionBuilder.ts C:\Projects\VPR_2027\src\services\worldTrainingPool.ts C:\Projects\VPR_2027\src\store\useTrainingStore.ts
+
+=== SUBJECT FILES ===
+C:\Projects\VPR_2027\src\data\demo\subjects.ts C:\Projects\VPR_2027\src\data\taxonomy\english.ts C:\Projects\VPR_2027\src\data\taxonomy\index.ts C:\Projects\VPR_2027\src\data\taxonomy\literaryReading.ts C:\Projects\VPR_2027\src\data\taxonomy\math.ts C:\Projects\VPR_2027\src\data\taxonomy\reading.ts C:\Projects\VPR_2027\src\data\taxonomy\russian.ts C:\Projects\VPR_2027\src\data\taxonomy\world.ts C:\Projects\VPR_2027\src\pages\SubjectPage.module.css C:\Projects\VPR_2027\src\pages\SubjectPage.tsx C:\Projects\VPR_2027\src\pages\SubjectsPage.module.css C:\Projects\VPR_2027\src\pages\SubjectsPage.tsx C:\Projects\VPR_2027\src\pages\trainSubject.ts
+
+=== ROUTES ===
+C:\Projects\VPR_2027\src\app\router.tsx C:\Projects\VPR_2027\src\pages\ExamResultPage.module.css C:\Projects\VPR_2027\src\pages\ExamResultPage.tsx C:\Projects\VPR_2027\src\pages\ExamSessionPage.module.css C:\Projects\VPR_2027\src\pages\ExamSessionPage.tsx C:\Projects\VPR_2027\src\pages\ExamStartPage.module.css C:\Projects\VPR_2027\src\pages\ExamStartPage.tsx C:\Projects\VPR_2027\src\pages\HomePage.module.css C:\Projects\VPR_2027\src\pages\HomePage.tsx C:\Projects\VPR_2027\src\pages\OnboardingPage.module.css C:\Projects\VPR_2027\src\pages\OnboardingPage.tsx C:\Projects\VPR_2027\src\pages\ProfilePage.module.css C:\Projects\VPR_2027\src\pages\ProfilePage.tsx C:\Projects\VPR_2027\src\pages\ProgressPage.module.css C:\Projects\VPR_2027\src\pages\ProgressPage.tsx C:\Projects\VPR_2027\src\pages\SubjectPage.module.css C:\Projects\VPR_2027\src\pages\SubjectPage.tsx C:\Projects\VPR_2027\src\pages\SubjectsPage.module.css C:\Projects\VPR_2027\src\pages\SubjectsPage.tsx C:\Projects\VPR_2027\src\pages\TrainPage.module.css C:\Projects\VPR_2027\src\pages\TrainPage.tsx C:\Projects\VPR_2027\src\pages\TrainResultPage.module.css C:\Projects\VPR_2027\src\pages\TrainResultPage.tsx C:\Projects\VPR_2027\src\pages\TrainSessionPage.module.css C:\Projects\VPR_2027\src\pages\TrainSessionPage.tsx
+
+=== KEY CHECKS ===
+TrainPage: True
+TrainingStore: True
+TaskRepository: True
+GeneratedRegistry: False
+ExamResolution: False
+
+=== ANDROID APK ===
+@{FullName=C:\Projects\VPR_2027\android\app\build\outputs\apk\debug\app-debug.apk; Length=5116262; LastWriteTime=08/23/2026 16:51:27}

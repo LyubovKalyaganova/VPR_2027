@@ -33,7 +33,7 @@ export function runStage18AndroidSelfChecks(): string[] {
   check(capConfig.includes("webDir: 'dist'"), 'capacitor webDir = dist');
   check(capConfig.includes('ВПР 4 класс 2027'), 'capacitor appName set');
 
-  check(read('android/app/src/main/AndroidManifest.xml').includes('portrait'), 'android portrait lock');
+  check(read('android/app/src/main/AndroidManifest.xml').includes('fullSensor'), 'android tablet orientation unlocked');
   const manifest = read('android/app/src/main/AndroidManifest.xml');
   check(!manifest.includes('CAMERA'), 'no CAMERA permission');
   check(!manifest.includes('RECORD_AUDIO'), 'no RECORD_AUDIO permission');

@@ -25,6 +25,7 @@
   --shadow-card: 0 8px 24px rgba(32, 36, 42, 0.06);
   --nav-height: 72px;
   --app-max-width: 480px;
+  --page-pad-x: 16px;
 
   --font: "Segoe UI", "PT Root UI", "Nunito Sans", system-ui, sans-serif;
   --space-1: 4px;
@@ -80,4 +81,19 @@ a {
 img {
   max-width: 100%;
   display: block;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --app-max-width: 920px;
+    --nav-height: 76px;
+    --page-pad-x: 28px;
+  }
+}
+
+@media (min-width: 1100px) {
+  :root {
+    --app-max-width: 1080px;
+    --page-pad-x: 36px;
+  }
 }

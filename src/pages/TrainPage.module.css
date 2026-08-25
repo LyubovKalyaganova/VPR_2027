@@ -149,3 +149,24 @@
   display: grid;
   gap: 2px;
 }
+
+@media (min-width: 768px) {
+  .page {
+    gap: 16px;
+  }
+
+  .subjectPicker {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .list,
+  .topics {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .examMode {
+    max-width: none;
+  }
+}

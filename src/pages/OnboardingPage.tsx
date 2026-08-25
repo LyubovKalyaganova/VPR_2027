@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AVATAR_COLORS } from '../data/demo/avatars';
 import { SUBJECTS } from '../data/demo/subjects';
 import { useUserStore } from '../store/useUserStore';
+import { useTrainingStore } from '../store/useTrainingStore';
 import type { SubjectId } from '../types';
 import { Avatar, Button, Card } from '../components/ui';
 import styles from './OnboardingPage.module.css';
@@ -12,6 +13,7 @@ const STEPS = ['Приветствие', 'Имя', 'Класс', 'Предмет
 export function OnboardingPage() {
   const navigate = useNavigate();
   const completeOnboarding = useUserStore((state) => state.completeOnboarding);
+  const startDiagnostic = useTrainingStore((state) => state.startDiagnostic);
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState<string>(AVATAR_COLORS[0]);
@@ -33,13 +35,32 @@ export function OnboardingPage() {
     );
   }
 
-  function finish(goToTrain: boolean) {
+  function finish() {
     completeOnboarding({
       name: name.trim() || 'Ученик',
       avatar,
       selectedSubjects,
     });
-    navigate(goToTrain ? '/train' : '/', { replace: true });
+    navigate('/', { replace: true });
+  }
+
+  function startCheck() {
+    completeOnboarding({
+      name: name.trim() || 'Ученик',
+      avatar,
+      selectedSubjects,
+    });
+    const userId = useUserStore.getState().profile?.userId;
+    if (!userId) {
+      navigate('/', { replace: true });
+      return;
+    }
+    const sessionId = startDiagnostic(userId, selectedSubjects);
+    if (!sessionId) {
+      navigate('/', { replace: true });
+      return;
+    }
+    navigate(`/train/session/${sessionId}`, { replace: true });
   }
 
   return (
@@ -56,7 +77,7 @@ export function OnboardingPage() {
           <h1>Привет! Давай настроим тренажёр</h1>
           <p className={styles.lead}>
             Сначала коротко познакомимся. Потом приложение поможет понять, что уже получается, а что стоит
-            потренировать.
+            потренировать. Это учебный тренажёр, а не официальная ВПР.
           </p>
         </section>
       ) : null}
@@ -135,9 +156,10 @@ export function OnboardingPage() {
 
       {step === 4 ? (
         <section className={styles.block}>
-          <h1>Готово — можно начинать!</h1>
+          <h1>Короткая проверка</h1>
           <p className={styles.lead}>
-            Выбери предмет на главном экране и начни с быстрой тренировки. Прогресс сохранится автоматически.
+            По одному простому заданию из каждого выбранного предмета. Так тренажёр поймёт, с чего тебе начать.
+            Можно пропустить и сразу перейти к подготовке.
           </p>
         </section>
       ) : null}
@@ -149,11 +171,11 @@ export function OnboardingPage() {
           </Button>
         ) : (
           <>
-            <Button fullWidth onClick={() => finish(false)}>
-              Начать подготовку
+            <Button fullWidth onClick={startCheck}>
+              Пройти проверку
             </Button>
-            <Button fullWidth variant="secondary" onClick={() => finish(true)}>
-              Сразу к тренировке
+            <Button fullWidth variant="secondary" onClick={finish}>
+              Пропустить и начать
             </Button>
           </>
         )}

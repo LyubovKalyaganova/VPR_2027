@@ -31,7 +31,7 @@ function resultTitle(mode: TrainingMode | undefined, topicTitle?: string): strin
     case 'daily':
       return 'Ежедневный план';
     case 'weak':
-      return 'Слабые места';
+      return 'Надо подтянуть';
     case 'mistakes':
       return 'Работа над ошибками';
     case 'review':
@@ -42,6 +42,8 @@ function resultTitle(mode: TrainingMode | undefined, topicTitle?: string): strin
       return 'Обычная тренировка';
     case 'random':
       return 'Случайная тренировка';
+    case 'diagnostic':
+      return 'Короткая проверка';
     case 'topic':
       return topicTitle ? `Тематическая тренировка · ${topicTitle}` : 'Тематическая тренировка';
     default:
@@ -153,7 +155,9 @@ export function TrainResultPage() {
         <p className={styles.kicker}>{title}</p>
         <h2>{summary.percent}%</h2>
         <p>
-          Правильных: {summary.correct} / {summary.total}. Ошибок: {summary.incorrect}.
+          {session?.mode === 'diagnostic'
+            ? 'Проверка закончена. Дальше тренажёр подберёт план по выбранным предметам.'
+            : `Правильных: ${summary.correct} / ${summary.total}. Ошибок: ${summary.incorrect}.`}
         </p>
       </Card>
 
@@ -230,24 +234,37 @@ export function TrainResultPage() {
       {notice ? <p className={styles.notice}>{notice}</p> : null}
 
       <div className={styles.actions}>
-        <Button fullWidth disabled={summary.incorrect === 0} onClick={handleMistakes}>
-          Разобрать ошибки
-        </Button>
-        {needReview.length > 0 ? (
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => navigate(subject ? `/train?subject=${subject}&mode=weak` : '/train')}
-          >
-            Повторить слабые навыки
+        {session?.mode === 'diagnostic' ? (
+          <Button fullWidth onClick={() => navigate('/')}>
+            К подготовке
+          </Button>
+        ) : (
+          <>
+            <Button fullWidth disabled={summary.incorrect === 0} onClick={handleMistakes}>
+              Разобрать ошибки
+            </Button>
+            {needReview.length > 0 ? (
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => navigate(subject ? `/train?subject=${subject}&mode=weak` : '/train')}
+              >
+                Подтянуть эти темы
+              </Button>
+            ) : null}
+            <Button variant="secondary" fullWidth onClick={handleContinue}>
+              Ещё одна тренировка
+            </Button>
+            <Button variant="secondary" fullWidth onClick={handleSubjectProgress}>
+              К прогрессу предмета
+            </Button>
+          </>
+        )}
+        {session?.mode === 'diagnostic' && summary.incorrect > 0 ? (
+          <Button variant="secondary" fullWidth onClick={handleMistakes}>
+            Разобрать ошибки
           </Button>
         ) : null}
-        <Button variant="secondary" fullWidth onClick={handleContinue}>
-          Ещё одна тренировка
-        </Button>
-        <Button variant="secondary" fullWidth onClick={handleSubjectProgress}>
-          К прогрессу предмета
-        </Button>
       </div>
     </div>
   );

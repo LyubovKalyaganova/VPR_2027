@@ -1,0 +1,303 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/pages/ExamResultPage.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=acbc7e66"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+let prevRefreshReg;
+let prevRefreshSig;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+var _s = $RefreshSig$();
+import { Navigate, useNavigate, useParams } from "/node_modules/.vite/deps/react-router-dom.js?v=acbc7e66";
+import { Button, Card } from "/src/components/ui/index.ts";
+import { getExamBlueprint } from "/src/services/exam/examBlueprints.ts";
+import { useExamStore } from "/src/store/useExamStore.ts";
+import styles from "/src/pages/ExamResultPage.module.css";
+function formatDuration(durationMs) {
+  const totalSeconds = Math.max(1, Math.round(durationMs / 1e3));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+export function ExamResultPage() {
+  _s();
+  const { sessionId } = useParams();
+  const navigate = useNavigate();
+  const session = useExamStore((state) => sessionId ? state.sessions[sessionId] : void 0);
+  const result = session?.result;
+  const blueprint = session ? getExamBlueprint(session.subjectId) : void 0;
+  if (!sessionId || !session) {
+    return /* @__PURE__ */ jsxDEV(Navigate, { to: "/subjects", replace: true }, void 0, false, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 41,
+      columnNumber: 12
+    }, this);
+  }
+  if (!result) {
+    return /* @__PURE__ */ jsxDEV("div", { className: styles.page, children: [
+      /* @__PURE__ */ jsxDEV(Card, { children: [
+        /* @__PURE__ */ jsxDEV("h2", { children: "Результат недоступен" }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 48,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: styles.note, children: "Экзамен ещё не завершён или данные повреждены." }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 49,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 47,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(Button, { fullWidth: true, onClick: () => navigate(`/subjects/${session.subjectId}`), children: "К предмету" }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 51,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 46,
+      columnNumber: 7
+    }, this);
+  }
+  const statusLabel = result.status === "expired" ? "Время истекло — экзамен завершён автоматически" : "ВПР завершена";
+  return /* @__PURE__ */ jsxDEV("div", { className: styles.page, children: [
+    /* @__PURE__ */ jsxDEV(Card, { className: styles.hero, children: [
+      /* @__PURE__ */ jsxDEV("p", { className: styles.kicker, children: statusLabel }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 64,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("h2", { children: [
+        result.earnedScore,
+        " / ",
+        result.maxScore
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 65,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: styles.meta, children: [
+        result.percentage,
+        "% · ",
+        result.correctCount,
+        " верно · ",
+        result.incorrectCount,
+        " ошибок ·",
+        " ",
+        result.unansweredCount,
+        " без ответа"
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 68,
+        columnNumber: 9
+      }, this),
+      result.grade ? /* @__PURE__ */ jsxDEV("p", { className: styles.meta, children: [
+        "Оценка: ",
+        result.grade
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 72,
+        columnNumber: 25
+      }, this) : null,
+      /* @__PURE__ */ jsxDEV("p", { className: styles.meta, children: [
+        "Время: ",
+        formatDuration(result.durationMs)
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 73,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 63,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: styles.stats, children: [
+      /* @__PURE__ */ jsxDEV(Card, { padding: "sm", children: [
+        /* @__PURE__ */ jsxDEV("b", { children: result.correctCount }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 78,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { children: "Верно" }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 79,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 77,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(Card, { padding: "sm", children: [
+        /* @__PURE__ */ jsxDEV("b", { children: result.incorrectCount }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 82,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { children: "Ошибок" }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 83,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 81,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(Card, { padding: "sm", children: [
+        /* @__PURE__ */ jsxDEV("b", { children: result.unansweredCount }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 86,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { children: "Без ответа" }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 87,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 85,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(Card, { padding: "sm", children: [
+        /* @__PURE__ */ jsxDEV("b", { children: result.maxScore }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 90,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { children: "Макс. балл" }, void 0, false, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 91,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 89,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 76,
+      columnNumber: 7
+    }, this),
+    blueprint?.scoringNote ? /* @__PURE__ */ jsxDEV(Card, { padding: "sm", children: /* @__PURE__ */ jsxDEV("p", { className: styles.note, children: blueprint.scoringNote }, void 0, false, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 97,
+      columnNumber: 11
+    }, this) }, void 0, false, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 96,
+      columnNumber: 7
+    }, this) : null,
+    /* @__PURE__ */ jsxDEV(Card, { children: [
+      /* @__PURE__ */ jsxDEV("h3", { children: "Разбор" }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 102,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: styles.breakdown, children: result.slotResults.map((slot, index) => {
+        const rowClass = !slot.answered ? styles.rowSkip : slot.isCorrect ? styles.rowOk : styles.rowBad;
+        const mark = !slot.answered ? "—" : slot.isCorrect ? "✓" : "✗";
+        return /* @__PURE__ */ jsxDEV("div", { className: `${styles.row} ${rowClass}`, children: [
+          /* @__PURE__ */ jsxDEV("span", { children: [
+            "№",
+            slot.slotId || index + 1,
+            " ",
+            mark,
+            " ",
+            slot.isCorrect ? "правильно" : slot.answered ? "ошибка" : "нет ответа"
+          ] }, void 0, true, {
+            fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+            lineNumber: 113,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV("span", { children: [
+            slot.earnedPoints,
+            "/",
+            slot.points
+          ] }, void 0, true, {
+            fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+            lineNumber: 117,
+            columnNumber: 17
+          }, this)
+        ] }, slot.taskId, true, {
+          fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+          lineNumber: 112,
+          columnNumber: 15
+        }, this);
+      }) }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 103,
+        columnNumber: 9
+      }, this),
+      result.slotResults.some((slot) => slot.trainingAnalog) ? /* @__PURE__ */ jsxDEV("p", { className: styles.note, children: "Некоторые задания проверены по учебному аналогу — на реальном ВПР проверка может отличаться." }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 125,
+        columnNumber: 9
+      }, this) : null
+    ] }, void 0, true, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 101,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: styles.actions, children: [
+      /* @__PURE__ */ jsxDEV(Button, { fullWidth: true, onClick: () => navigate(`/subjects/${session.subjectId}`), children: "К прогрессу предмета" }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 132,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", fullWidth: true, onClick: () => navigate(`/exam/${session.subjectId}/start`), children: "Новая ВПР" }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 135,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", fullWidth: true, onClick: () => navigate(`/train?subject=${session.subjectId}`), children: "Тренировка" }, void 0, false, {
+        fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+        lineNumber: 138,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+      lineNumber: 131,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx",
+    lineNumber: 62,
+    columnNumber: 5
+  }, this);
+}
+_s(ExamResultPage, "3qDpw9apQ4LacSc3Hw36Dn6fWmY=", false, function() {
+  return [useParams, useNavigate, useExamStore];
+});
+_c = ExamResultPage;
+var _c;
+$RefreshReg$(_c, "ExamResultPage");
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Projects/VPR_2027/src/pages/ExamResultPage.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUUsV0FBV3pELE9BQU93QixNQUFLLDRHQUExQjtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBRUEsSUFDRTtBQUFBLFNBM0JOO0FBQUE7QUFBQTtBQUFBO0FBQUEsV0E0QkE7QUFBQSxJQUVBLHVCQUFDLFNBQUksV0FBV3hCLE9BQU8wRCxTQUNyQjtBQUFBLDZCQUFDLFVBQU8sV0FBUyxNQUFDLFNBQVMsTUFBTTNDLFNBQVMsYUFBYUMsUUFBUU0sU0FBUyxFQUFFLEdBQUUsb0NBQTVFO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFFQTtBQUFBLE1BQ0EsdUJBQUMsVUFBTyxTQUFRLGFBQVksV0FBUyxNQUFDLFNBQVMsTUFBTVAsU0FBUyxTQUFTQyxRQUFRTSxTQUFTLFFBQVEsR0FBRSx5QkFBbEc7QUFBQTtBQUFBO0FBQUE7QUFBQSxhQUVBO0FBQUEsTUFDQSx1QkFBQyxVQUFPLFNBQVEsYUFBWSxXQUFTLE1BQUMsU0FBUyxNQUFNUCxTQUFTLGtCQUFrQkMsUUFBUU0sU0FBUyxFQUFFLEdBQUUsMEJBQXJHO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFFQTtBQUFBLFNBVEY7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQVVBO0FBQUEsT0EvRUY7QUFBQTtBQUFBO0FBQUE7QUFBQSxTQWdGQTtBQUVKO0FBQUNULEdBL0dlRCxnQkFBYztBQUFBLFVBQ05qQixXQUNMRCxhQUNESyxZQUFZO0FBQUE7QUFBQSxLQUhkYTtBQUFjLElBQUErQztBQUFBLGFBQUFBLElBQUEiLCJuYW1lcyI6WyJOYXZpZ2F0ZSIsInVzZU5hdmlnYXRlIiwidXNlUGFyYW1zIiwiQnV0dG9uIiwiQ2FyZCIsImdldEV4YW1CbHVlcHJpbnQiLCJ1c2VFeGFtU3RvcmUiLCJzdHlsZXMiLCJmb3JtYXREdXJhdGlvbiIsImR1cmF0aW9uTXMiLCJ0b3RhbFNlY29uZHMiLCJNYXRoIiwibWF4Iiwicm91bmQiLCJtaW51dGVzIiwiZmxvb3IiLCJzZWNvbmRzIiwiU3RyaW5nIiwicGFkU3RhcnQiLCJFeGFtUmVzdWx0UGFnZSIsIl9zIiwic2Vzc2lvbklkIiwibmF2aWdhdGUiLCJzZXNzaW9uIiwic3RhdGUiLCJzZXNzaW9ucyIsInVuZGVmaW5lZCIsInJlc3VsdCIsImJsdWVwcmludCIsInN1YmplY3RJZCIsInBhZ2UiLCJub3RlIiwic3RhdHVzTGFiZWwiLCJzdGF0dXMiLCJoZXJvIiwia2lja2VyIiwiZWFybmVkU2NvcmUiLCJtYXhTY29yZSIsIm1ldGEiLCJwZXJjZW50YWdlIiwiY29ycmVjdENvdW50IiwiaW5jb3JyZWN0Q291bnQiLCJ1bmFuc3dlcmVkQ291bnQiLCJncmFkZSIsInN0YXRzIiwic2NvcmluZ05vdGUiLCJicmVha2Rvd24iLCJzbG90UmVzdWx0cyIsIm1hcCIsInNsb3QiLCJpbmRleCIsInJvd0NsYXNzIiwiYW5zd2VyZWQiLCJyb3dTa2lwIiwiaXNDb3JyZWN0Iiwicm93T2siLCJyb3dCYWQiLCJtYXJrIiwicm93Iiwic2xvdElkIiwiZWFybmVkUG9pbnRzIiwicG9pbnRzIiwidGFza0lkIiwic29tZSIsInRyYWluaW5nQW5hbG9nIiwiYWN0aW9ucyIsIl9jIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIkV4YW1SZXN1bHRQYWdlLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBOYXZpZ2F0ZSwgdXNlTmF2aWdhdGUsIHVzZVBhcmFtcyB9IGZyb20gJ3JlYWN0LXJvdXRlci1kb20nO1xuaW1wb3J0IHsgQnV0dG9uLCBDYXJkIH0gZnJvbSAnLi4vY29tcG9uZW50cy91aSc7XG5pbXBvcnQgeyBnZXRFeGFtQmx1ZXByaW50IH0gZnJvbSAnLi4vc2VydmljZXMvZXhhbS9leGFtQmx1ZXByaW50cyc7XG5pbXBvcnQgeyB1c2VFeGFtU3RvcmUgfSBmcm9tICcuLi9zdG9yZS91c2VFeGFtU3RvcmUnO1xuaW1wb3J0IHN0eWxlcyBmcm9tICcuL0V4YW1SZXN1bHRQYWdlLm1vZHVsZS5jc3MnO1xuXG5mdW5jdGlvbiBmb3JtYXREdXJhdGlvbihkdXJhdGlvbk1zOiBudW1iZXIpOiBzdHJpbmcge1xuICBjb25zdCB0b3RhbFNlY29uZHMgPSBNYXRoLm1heCgxLCBNYXRoLnJvdW5kKGR1cmF0aW9uTXMgLyAxMDAwKSk7XG4gIGNvbnN0IG1pbnV0ZXMgPSBNYXRoLmZsb29yKHRvdGFsU2Vjb25kcyAvIDYwKTtcbiAgY29uc3Qgc2Vjb25kcyA9IHRvdGFsU2Vjb25kcyAlIDYwO1xuICByZXR1cm4gYCR7U3RyaW5nKG1pbnV0ZXMpLnBhZFN0YXJ0KDIsICcwJyl9OiR7U3RyaW5nKHNlY29uZHMpLnBhZFN0YXJ0KDIsICcwJyl9YDtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIEV4YW1SZXN1bHRQYWdlKCkge1xuICBjb25zdCB7IHNlc3Npb25JZCB9ID0gdXNlUGFyYW1zKCk7XG4gIGNvbnN0IG5hdmlnYXRlID0gdXNlTmF2aWdhdGUoKTtcbiAgY29uc3Qgc2Vzc2lvbiA9IHVzZUV4YW1TdG9yZSgoc3RhdGUpID0+IChzZXNzaW9uSWQgPyBzdGF0ZS5zZXNzaW9uc1tzZXNzaW9uSWRdIDogdW5kZWZpbmVkKSk7XG4gIGNvbnN0IHJlc3VsdCA9IHNlc3Npb24/LnJlc3VsdDtcbiAgY29uc3QgYmx1ZXByaW50ID0gc2Vzc2lvbiA/IGdldEV4YW1CbHVlcHJpbnQoc2Vzc2lvbi5zdWJqZWN0SWQpIDogdW5kZWZpbmVkO1xuXG4gIGlmICghc2Vzc2lvbklkIHx8ICFzZXNzaW9uKSB7XG4gICAgcmV0dXJuIDxOYXZpZ2F0ZSB0bz1cIi9zdWJqZWN0c1wiIHJlcGxhY2UgLz47XG4gIH1cblxuICBpZiAoIXJlc3VsdCkge1xuICAgIHJldHVybiAoXG4gICAgICA8ZGl2IGNsYXNzTmFtZT17c3R5bGVzLnBhZ2V9PlxuICAgICAgICA8Q2FyZD5cbiAgICAgICAgICA8aDI+0KDQtdC30YPQu9GM0YLQsNGCINC90LXQtNC+0YHRgtGD0L/QtdC9PC9oMj5cbiAgICAgICAgICA8cCBjbGFzc05hbWU9e3N0eWxlcy5ub3RlfT7QrdC60LfQsNC80LXQvSDQtdGJ0ZEg0L3QtSDQt9Cw0LLQtdGA0YjRkdC9INC40LvQuCDQtNCw0L3QvdGL0LUg0L/QvtCy0YDQtdC20LTQtdC90YsuPC9wPlxuICAgICAgICA8L0NhcmQ+XG4gICAgICAgIDxCdXR0b24gZnVsbFdpZHRoIG9uQ2xpY2s9eygpID0+IG5hdmlnYXRlKGAvc3ViamVjdHMvJHtzZXNzaW9uLnN1YmplY3RJZH1gKX0+XG4gICAgICAgICAg0Jog0L/RgNC10LTQvNC10YLRg1xuICAgICAgICA8L0J1dHRvbj5cbiAgICAgIDwvZGl2PlxuICAgICk7XG4gIH1cblxuICBjb25zdCBzdGF0dXNMYWJlbCA9XG4gICAgcmVzdWx0LnN0YXR1cyA9PT0gJ2V4cGlyZWQnID8gJ9CS0YDQtdC80Y8g0LjRgdGC0LXQutC70L4g4oCUINGN0LrQt9Cw0LzQtdC9INC30LDQstC10YDRiNGR0L0g0LDQstGC0L7QvNCw0YLQuNGH0LXRgdC60LgnIDogJ9CS0J/QoCDQt9Cw0LLQtdGA0YjQtdC90LAnO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9e3N0eWxlcy5wYWdlfT5cbiAgICAgIDxDYXJkIGNsYXNzTmFtZT17c3R5bGVzLmhlcm99PlxuICAgICAgICA8cCBjbGFzc05hbWU9e3N0eWxlcy5raWNrZXJ9PntzdGF0dXNMYWJlbH08L3A+XG4gICAgICAgIDxoMj5cbiAgICAgICAgICB7cmVzdWx0LmVhcm5lZFNjb3JlfSAvIHtyZXN1bHQubWF4U2NvcmV9XG4gICAgICAgIDwvaDI+XG4gICAgICAgIDxwIGNsYXNzTmFtZT17c3R5bGVzLm1ldGF9PlxuICAgICAgICAgIHtyZXN1bHQucGVyY2VudGFnZX0lIMK3IHtyZXN1bHQuY29ycmVjdENvdW50fSDQstC10YDQvdC+IMK3IHtyZXN1bHQuaW5jb3JyZWN0Q291bnR9INC+0YjQuNCx0L7QuiDCt3snICd9XG4gICAgICAgICAge3Jlc3VsdC51bmFuc3dlcmVkQ291bnR9INCx0LXQtyDQvtGC0LLQtdGC0LBcbiAgICAgICAgPC9wPlxuICAgICAgICB7cmVzdWx0LmdyYWRlID8gPHAgY2xhc3NOYW1lPXtzdHlsZXMubWV0YX0+0J7RhtC10L3QutCwOiB7cmVzdWx0LmdyYWRlfTwvcD4gOiBudWxsfVxuICAgICAgICA8cCBjbGFzc05hbWU9e3N0eWxlcy5tZXRhfT7QktGA0LXQvNGPOiB7Zm9ybWF0RHVyYXRpb24ocmVzdWx0LmR1cmF0aW9uTXMpfTwvcD5cbiAgICAgIDwvQ2FyZD5cblxuICAgICAgPGRpdiBjbGFzc05hbWU9e3N0eWxlcy5zdGF0c30+XG4gICAgICAgIDxDYXJkIHBhZGRpbmc9XCJzbVwiPlxuICAgICAgICAgIDxiPntyZXN1bHQuY29ycmVjdENvdW50fTwvYj5cbiAgICAgICAgICA8c3Bhbj7QktC10YDQvdC+PC9zcGFuPlxuICAgICAgICA8L0NhcmQ+XG4gICAgICAgIDxDYXJkIHBhZGRpbmc9XCJzbVwiPlxuICAgICAgICAgIDxiPntyZXN1bHQuaW5jb3JyZWN0Q291bnR9PC9iPlxuICAgICAgICAgIDxzcGFuPtCe0YjQuNCx0L7Qujwvc3Bhbj5cbiAgICAgICAgPC9DYXJkPlxuICAgICAgICA8Q2FyZCBwYWRkaW5nPVwic21cIj5cbiAgICAgICAgICA8Yj57cmVzdWx0LnVuYW5zd2VyZWRDb3VudH08L2I+XG4gICAgICAgICAgPHNwYW4+0JHQtdC3INC+0YLQstC10YLQsDwvc3Bhbj5cbiAgICAgICAgPC9DYXJkPlxuICAgICAgICA8Q2FyZCBwYWRkaW5nPVwic21cIj5cbiAgICAgICAgICA8Yj57cmVzdWx0Lm1heFNjb3JlfTwvYj5cbiAgICAgICAgICA8c3Bhbj7QnNCw0LrRgS4g0LHQsNC70Ls8L3NwYW4+XG4gICAgICAgIDwvQ2FyZD5cbiAgICAgIDwvZGl2PlxuXG4gICAgICB7Ymx1ZXByaW50Py5zY29yaW5nTm90ZSA/IChcbiAgICAgICAgPENhcmQgcGFkZGluZz1cInNtXCI+XG4gICAgICAgICAgPHAgY2xhc3NOYW1lPXtzdHlsZXMubm90ZX0+e2JsdWVwcmludC5zY29yaW5nTm90ZX08L3A+XG4gICAgICAgIDwvQ2FyZD5cbiAgICAgICkgOiBudWxsfVxuXG4gICAgICA8Q2FyZD5cbiAgICAgICAgPGgzPtCg0LDQt9Cx0L7RgDwvaDM+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPXtzdHlsZXMuYnJlYWtkb3dufT5cbiAgICAgICAgICB7cmVzdWx0LnNsb3RSZXN1bHRzLm1hcCgoc2xvdCwgaW5kZXgpID0+IHtcbiAgICAgICAgICAgIGNvbnN0IHJvd0NsYXNzID0gIXNsb3QuYW5zd2VyZWRcbiAgICAgICAgICAgICAgPyBzdHlsZXMucm93U2tpcFxuICAgICAgICAgICAgICA6IHNsb3QuaXNDb3JyZWN0XG4gICAgICAgICAgICAgICAgPyBzdHlsZXMucm93T2tcbiAgICAgICAgICAgICAgICA6IHN0eWxlcy5yb3dCYWQ7XG4gICAgICAgICAgICBjb25zdCBtYXJrID0gIXNsb3QuYW5zd2VyZWQgPyAn4oCUJyA6IHNsb3QuaXNDb3JyZWN0ID8gJ+KckycgOiAn4pyXJztcbiAgICAgICAgICAgIHJldHVybiAoXG4gICAgICAgICAgICAgIDxkaXYga2V5PXtzbG90LnRhc2tJZH0gY2xhc3NOYW1lPXtgJHtzdHlsZXMucm93fSAke3Jvd0NsYXNzfWB9PlxuICAgICAgICAgICAgICAgIDxzcGFuPlxuICAgICAgICAgICAgICAgICAg4oSWe3Nsb3Quc2xvdElkIHx8IGluZGV4ICsgMX0ge21hcmt9eycgJ31cbiAgICAgICAgICAgICAgICAgIHtzbG90LmlzQ29ycmVjdCA/ICfQv9GA0LDQstC40LvRjNC90L4nIDogc2xvdC5hbnN3ZXJlZCA/ICfQvtGI0LjQsdC60LAnIDogJ9C90LXRgiDQvtGC0LLQtdGC0LAnfVxuICAgICAgICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICAgICAgICA8c3Bhbj5cbiAgICAgICAgICAgICAgICAgIHtzbG90LmVhcm5lZFBvaW50c30ve3Nsb3QucG9pbnRzfVxuICAgICAgICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICApO1xuICAgICAgICAgIH0pfVxuICAgICAgICA8L2Rpdj5cbiAgICAgICAge3Jlc3VsdC5zbG90UmVzdWx0cy5zb21lKChzbG90KSA9PiBzbG90LnRyYWluaW5nQW5hbG9nKSA/IChcbiAgICAgICAgICA8cCBjbGFzc05hbWU9e3N0eWxlcy5ub3RlfT5cbiAgICAgICAgICAgINCd0LXQutC+0YLQvtGA0YvQtSDQt9Cw0LTQsNC90LjRjyDQv9GA0L7QstC10YDQtdC90Ysg0L/QviDRg9GH0LXQsdC90L7QvNGDINCw0L3QsNC70L7Qs9GDIOKAlCDQvdCwINGA0LXQsNC70YzQvdC+0Lwg0JLQn9CgINC/0YDQvtCy0LXRgNC60LAg0LzQvtC20LXRgiDQvtGC0LvQuNGH0LDRgtGM0YHRjy5cbiAgICAgICAgICA8L3A+XG4gICAgICAgICkgOiBudWxsfVxuICAgICAgPC9DYXJkPlxuXG4gICAgICA8ZGl2IGNsYXNzTmFtZT17c3R5bGVzLmFjdGlvbnN9PlxuICAgICAgICA8QnV0dG9uIGZ1bGxXaWR0aCBvbkNsaWNrPXsoKSA9PiBuYXZpZ2F0ZShgL3N1YmplY3RzLyR7c2Vzc2lvbi5zdWJqZWN0SWR9YCl9PlxuICAgICAgICAgINCaINC/0YDQvtCz0YDQtdGB0YHRgyDQv9GA0LXQtNC80LXRgtCwXG4gICAgICAgIDwvQnV0dG9uPlxuICAgICAgICA8QnV0dG9uIHZhcmlhbnQ9XCJzZWNvbmRhcnlcIiBmdWxsV2lkdGggb25DbGljaz17KCkgPT4gbmF2aWdhdGUoYC9leGFtLyR7c2Vzc2lvbi5zdWJqZWN0SWR9L3N0YXJ0YCl9PlxuICAgICAgICAgINCd0L7QstCw0Y8g0JLQn9CgXG4gICAgICAgIDwvQnV0dG9uPlxuICAgICAgICA8QnV0dG9uIHZhcmlhbnQ9XCJzZWNvbmRhcnlcIiBmdWxsV2lkdGggb25DbGljaz17KCkgPT4gbmF2aWdhdGUoYC90cmFpbj9zdWJqZWN0PSR7c2Vzc2lvbi5zdWJqZWN0SWR9YCl9PlxuICAgICAgICAgINCi0YDQtdC90LjRgNC+0LLQutCwXG4gICAgICAgIDwvQnV0dG9uPlxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gICk7XG59XG4iXSwiZmlsZSI6IkM6L1Byb2plY3RzL1ZQUl8yMDI3L3NyYy9wYWdlcy9FeGFtUmVzdWx0UGFnZS50c3gifQ==

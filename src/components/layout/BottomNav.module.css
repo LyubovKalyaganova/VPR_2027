@@ -46,3 +46,15 @@
 .active {
   color: var(--color-accent);
 }
+
+@media (min-width: 768px) {
+  .nav {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .item {
+    font-size: 12px;
+    gap: 6px;
+  }
+}

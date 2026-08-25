@@ -9,7 +9,7 @@ interface UserState {
     avatar: string;
     selectedSubjects: SubjectId[];
   }) => void;
-  updateProfile: (patch: Partial<Pick<UserProfile, 'name' | 'avatar'>>) => void;
+  updateProfile: (patch: Partial<Pick<UserProfile, 'name' | 'avatar' | 'selectedSubjects'>>) => void;
   resetOnboarding: () => void;
 }
 

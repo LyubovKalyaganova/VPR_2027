@@ -8,6 +8,7 @@ import {
 import {
   getCalendarDate,
   listStoredDailyPlans,
+  listStoredDailyPlansForUser,
   type DailyPlanStorageBackend,
   type StoredDailyPlan,
 } from './dailyPlanStorage';
@@ -230,4 +231,42 @@ export function getDailyPlanHistory(input: GetDailyPlanHistoryInput): DailyPlanD
     .sort((left, right) => right.date.localeCompare(left.date))
     .slice(0, Math.max(0, limit))
     .map((plan) => summaryFromStoredPlan(plan, attempts));
+}
+
+export function getMergedDailyPlanHistory(input: {
+  userId: string;
+  limit?: number;
+  attempts?: readonly Attempt[];
+  storage?: DailyPlanStorageBackend;
+}): DailyPlanDaySummary[] {
+  const limit = input.limit ?? HISTORY_LIMIT;
+  const attempts = input.attempts ?? localAttemptRecorder.getAll(input.userId);
+  const byDate = new Map<string, DailyPlanDaySummary>();
+  for (const plan of listStoredDailyPlansForUser(input.userId, input.storage)) {
+    const row = summaryFromStoredPlan(plan, attempts);
+    const current = byDate.get(row.date);
+    if (!current) {
+      byDate.set(row.date, row);
+      continue;
+    }
+    const total = current.total + row.total;
+    const completed = current.completed + row.completed;
+    const correct = current.correct + row.correct;
+    const incorrect = current.incorrect + row.incorrect;
+    const answered = correct + incorrect;
+    byDate.set(row.date, {
+      date: row.date,
+      total,
+      completed,
+      remaining: Math.max(0, total - completed),
+      isCompleted: total > 0 && completed === total,
+      correct,
+      incorrect,
+      accuracy: answered > 0 ? Math.round((correct / answered) * 100) : null,
+      status: total > 0 && completed === total ? 'completed' : 'incomplete',
+    });
+  }
+  return [...byDate.values()]
+    .sort((left, right) => right.date.localeCompare(left.date))
+    .slice(0, Math.max(0, limit));
 }
