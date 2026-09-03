@@ -4,10 +4,6 @@ import { localAttemptRecorder } from '../db';
 import { TaskEngine } from '../engine';
 import type { SessionSummary, TaskSession, UserAnswer } from '../engine';
 import { MATH_SKILLS, type MathSkill } from '../data/taxonomy/math';
-import { RUSSIAN_SKILLS } from '../data/taxonomy/russian';
-import { WORLD_SKILLS } from '../data/taxonomy/world';
-import { READING_SKILLS } from '../data/taxonomy/literaryReading';
-import { ENGLISH_SKILLS } from '../data/taxonomy/english';
 import { skillsForSubject } from '../data/taxonomy/catalog';
 import { getDemoTasks } from '../data/questions/demoTasks';
 import { selectWeightedMathSessionTasks } from '../features/mathematics/mathTrainingSelection';
@@ -21,65 +17,96 @@ import { getReviewState } from '../services/reviewScheduler';
 import { getCombinedDailyPlan } from '../services/dailyPlanRunner';
 import { getRemainingDailyTaskIds } from '../services/dailyPlanProgressService';
 import { pickDiagnosticTasks } from '../services/diagnosticTasks';
+import {
+  getUnlockedCodes,
+  getUnlockedSkillIds,
+  resolveSchoolMonth,
+} from '../services/schoolCurriculum';
 import { taskRepository } from '../services/taskRepository';
 import {
   assertUniqueTaskIds,
   pickRandomSubjectTasks,
   pickTopicSessionTasks,
 } from '../services/trainingSessionBuilder';
+import { useUserStore } from './useUserStore';
 import type { Attempt, Task, SubjectId, TrainingMode } from '../types';
 
+function currentSchoolMonth() {
+  return resolveSchoolMonth(useUserStore.getState().profile?.schoolMonth);
+}
+
+function allowedCodesFor(subject: SubjectId): string[] {
+  return getUnlockedCodes(subject, currentSchoolMonth());
+}
+
+function unlockedSkillIdsFor(subject: SubjectId): string[] {
+  return getUnlockedSkillIds(subject, currentSchoolMonth());
+}
+
+function unlockedSkillsFor(subject: SubjectId) {
+  const ids = new Set(unlockedSkillIdsFor(subject));
+  return skillsForSubject(subject).filter((skill) => ids.has(skill.id));
+}
+
 /**
- * quick / normal: взвешенный mix (trainingWeight → generators).
- * random: равномерный shuffle из банка предмета.
+ * quick / normal: взвешенный mix по открытым темам учебного месяца.
+ * random: равномерный shuffle из открытых тем.
  */
 function pickWorldTasks(mode: TrainingMode): Task[] {
+  const allowedCodes = allowedCodesFor('world');
+  const allowedSkillIds = unlockedSkillIdsFor('world');
   switch (mode) {
     case 'quick':
-      return selectWeightedWorldSessionTasks(5);
+      return selectWeightedWorldSessionTasks(5, { allowedCodes });
     case 'normal':
-      return selectWeightedWorldSessionTasks(10);
+      return selectWeightedWorldSessionTasks(10, { allowedCodes });
     case 'random':
-      return pickRandomSubjectTasks('world', 10);
+      return pickRandomSubjectTasks('world', 10, { allowedSkillIds });
     default:
       return taskRepository.getWorldTasks();
   }
 }
 
 function pickReadingTasks(mode: TrainingMode): Task[] {
+  const allowedCodes = allowedCodesFor('reading');
+  const allowedSkillIds = unlockedSkillIdsFor('reading');
   switch (mode) {
     case 'quick':
-      return selectWeightedReadingSessionTasks(5);
+      return selectWeightedReadingSessionTasks(5, { allowedCodes });
     case 'normal':
-      return selectWeightedReadingSessionTasks(10);
+      return selectWeightedReadingSessionTasks(10, { allowedCodes });
     case 'random':
-      return pickRandomSubjectTasks('reading', 10);
+      return pickRandomSubjectTasks('reading', 10, { allowedSkillIds });
     default:
       return taskRepository.getLiteraryReadingTasks();
   }
 }
 
 function pickEnglishTasks(mode: TrainingMode): Task[] {
+  const allowedCodes = allowedCodesFor('english');
+  const allowedSkillIds = unlockedSkillIdsFor('english');
   switch (mode) {
     case 'quick':
-      return selectWeightedEnglishSessionTasks(5);
+      return selectWeightedEnglishSessionTasks(5, { allowedCodes });
     case 'normal':
-      return selectWeightedEnglishSessionTasks(10);
+      return selectWeightedEnglishSessionTasks(10, { allowedCodes });
     case 'random':
-      return pickRandomSubjectTasks('english', 10);
+      return pickRandomSubjectTasks('english', 10, { allowedSkillIds });
     default:
       return taskRepository.getEnglishTasks();
   }
 }
 
 function pickRussianTasks(mode: TrainingMode): Task[] {
+  const allowedCodes = allowedCodesFor('russian');
+  const allowedSkillIds = unlockedSkillIdsFor('russian');
   switch (mode) {
     case 'quick':
-      return selectWeightedRussianSessionTasks(5);
+      return selectWeightedRussianSessionTasks(5, { allowedCodes });
     case 'normal':
-      return selectWeightedRussianSessionTasks(10);
+      return selectWeightedRussianSessionTasks(10, { allowedCodes });
     case 'random':
-      return pickRandomSubjectTasks('russian', 10);
+      return pickRandomSubjectTasks('russian', 10, { allowedSkillIds });
     default:
       return taskRepository.getRussianTasks();
   }
@@ -93,15 +120,17 @@ function assertSubjectTasks(tasks: Task[], subject: SubjectId): void {
 }
 
 function pickMathTasks(mode: TrainingMode): Task[] {
+  const allowedCodes = allowedCodesFor('mathematics');
+  const allowedSkillIds = unlockedSkillIdsFor('mathematics');
   switch (mode) {
     case 'quick':
-      return selectWeightedMathSessionTasks(5);
+      return selectWeightedMathSessionTasks(5, { allowedCodes });
     case 'normal':
-      return selectWeightedMathSessionTasks(10);
+      return selectWeightedMathSessionTasks(10, { allowedCodes });
     case 'random':
-      return pickRandomSubjectTasks('mathematics', 10);
+      return pickRandomSubjectTasks('mathematics', 10, { allowedSkillIds });
     default:
-      return taskRepository.getMathTasks();
+      return selectWeightedMathSessionTasks(10, { allowedCodes });
   }
 }
 
@@ -162,13 +191,18 @@ export function selectReviewTasks(
   if (dueSkills.length === 0) {
     return [];
   }
+  const unlockedIds = new Set(unlockedSkillIdsFor(subject));
+  const skills = dueSkills.filter((skill) => unlockedIds.has(skill.id));
+  if (skills.length === 0) {
+    return [];
+  }
   return selectAdaptiveTasks({
     userId,
     subject,
     count: REVIEW_COUNT,
     attempts: skillAttempts(attempts, userId, subject),
     tasks: taskRepository.getBySubject(subject),
-    skills: dueSkills,
+    skills,
     nowIso,
   });
 }
@@ -365,7 +399,7 @@ export const useTrainingStore = create<TrainingState>()(
           count: 5,
           attempts: localAttemptRecorder.getAll(userId),
           tasks: taskRepository.getBySubject('mathematics'),
-          skills: MATH_SKILLS,
+          skills: unlockedSkillsFor('mathematics'),
         });
         if (tasks.length === 0) {
           return null;
@@ -387,7 +421,7 @@ export const useTrainingStore = create<TrainingState>()(
           count: 5,
           attempts: localAttemptRecorder.getAll(userId),
           tasks: taskRepository.getBySubject('russian'),
-          skills: RUSSIAN_SKILLS,
+          skills: unlockedSkillsFor('russian'),
         });
         if (tasks.length === 0) {
           return null;
@@ -410,7 +444,7 @@ export const useTrainingStore = create<TrainingState>()(
           count: 5,
           attempts: localAttemptRecorder.getAll(userId),
           tasks: taskRepository.getBySubject('world'),
-          skills: WORLD_SKILLS,
+          skills: unlockedSkillsFor('world'),
         });
         if (tasks.length === 0) {
           return null;
@@ -433,7 +467,7 @@ export const useTrainingStore = create<TrainingState>()(
           count: 5,
           attempts: localAttemptRecorder.getAll(userId),
           tasks: taskRepository.getBySubject('reading'),
-          skills: READING_SKILLS,
+          skills: unlockedSkillsFor('reading'),
         });
         if (tasks.length === 0) {
           return null;
@@ -456,7 +490,7 @@ export const useTrainingStore = create<TrainingState>()(
           count: 5,
           attempts: localAttemptRecorder.getAll(userId),
           tasks: taskRepository.getBySubject('english'),
-          skills: ENGLISH_SKILLS,
+          skills: unlockedSkillsFor('english'),
         });
         if (tasks.length === 0) {
           return null;

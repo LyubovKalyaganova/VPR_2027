@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SubjectId, UserProfile } from '../types';
+import { schoolMonthFromDate } from '../services/schoolCurriculum';
+import type { SchoolMonth, SubjectId, UserProfile } from '../types';
 
 interface UserState {
   profile: UserProfile | null;
@@ -8,8 +9,11 @@ interface UserState {
     name: string;
     avatar: string;
     selectedSubjects: SubjectId[];
+    schoolMonth?: SchoolMonth;
   }) => void;
-  updateProfile: (patch: Partial<Pick<UserProfile, 'name' | 'avatar' | 'selectedSubjects'>>) => void;
+  updateProfile: (
+    patch: Partial<Pick<UserProfile, 'name' | 'avatar' | 'selectedSubjects' | 'schoolMonth'>>,
+  ) => void;
   resetOnboarding: () => void;
 }
 
@@ -24,13 +28,14 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       profile: null,
-      completeOnboarding: ({ name, avatar, selectedSubjects }) => {
+      completeOnboarding: ({ name, avatar, selectedSubjects, schoolMonth }) => {
         const profile: UserProfile = {
           userId: createId(),
           name: name.trim(),
           class: 4,
           avatar,
           selectedSubjects,
+          schoolMonth: schoolMonth ?? schoolMonthFromDate(),
           createdAt: new Date().toISOString(),
           onboardingCompleted: true,
         };

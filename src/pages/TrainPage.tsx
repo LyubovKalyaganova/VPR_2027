@@ -1,14 +1,19 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Card } from '../components/ui';
-import { MATH_TOPICS } from '../data/taxonomy/math';
-import { RUSSIAN_TOPICS } from '../data/taxonomy/russian';
-import { WORLD_TOPICS } from '../data/taxonomy/world';
-import { ENGLISH_TOPICS } from '../data/taxonomy/english';
-import { READING_TOPICS } from '../data/taxonomy/literaryReading';
+import { MATH_TOPICS, MATH_SKILLS } from '../data/taxonomy/math';
+import { RUSSIAN_TOPICS, RUSSIAN_SKILLS } from '../data/taxonomy/russian';
+import { WORLD_TOPICS, WORLD_SKILLS } from '../data/taxonomy/world';
+import { ENGLISH_TOPICS, ENGLISH_SKILLS } from '../data/taxonomy/english';
+import { READING_TOPICS, READING_SKILLS } from '../data/taxonomy/literaryReading';
 import { localAttemptRecorder } from '../db';
-import { taskRepository } from '../services/taskRepository';
 import { visibleSubjects } from '../data/taxonomy/catalog';
+import {
+  curriculumProgressLabel,
+  getUnlockedSkillIds,
+  resolveSchoolMonth,
+} from '../services/schoolCurriculum';
+import { taskRepository } from '../services/taskRepository';
 import { selectDueSkills, useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
 import type { TrainingMode } from '../types';
@@ -83,7 +88,12 @@ export function TrainPage() {
 
   const trainingModes = useMemo(() => trainingModesForSubject(subject), [subject]);
   const examMode = useMemo(() => examModeForSubject(subject), [subject]);
-  const topics =
+  const schoolMonth = resolveSchoolMonth(profile?.schoolMonth);
+  const unlockedSkillIds = useMemo(
+    () => new Set(getUnlockedSkillIds(subject, schoolMonth)),
+    [subject, schoolMonth],
+  );
+  const allTopics =
     subject === 'russian'
       ? RUSSIAN_TOPICS
       : subject === 'world'
@@ -93,6 +103,21 @@ export function TrainPage() {
           : subject === 'english'
             ? ENGLISH_TOPICS
             : MATH_TOPICS;
+  const topics = useMemo(() => {
+    const subjectSkills =
+      subject === 'russian'
+        ? RUSSIAN_SKILLS
+        : subject === 'world'
+          ? WORLD_SKILLS
+          : subject === 'reading'
+            ? READING_SKILLS
+            : subject === 'english'
+              ? ENGLISH_SKILLS
+              : MATH_SKILLS;
+    return allTopics.filter((topic) =>
+      subjectSkills.some((skill) => skill.topicId === topic.id && unlockedSkillIds.has(skill.id)),
+    );
+  }, [allTopics, subject, unlockedSkillIds]);
 
   const selectedTopicCount = selectedTopicId ? taskCountByTopic(subject, selectedTopicId) : 0;
   const canStartTopic =
@@ -251,7 +276,10 @@ export function TrainPage() {
 
   return (
     <div className={styles.page}>
-      <p className={styles.lead}>Выбери предмет и режим. Тренировка и пробная ВПР — разные режимы.</p>
+      <p className={styles.lead}>
+        Выбери предмет и режим. Сейчас открыты темы: {curriculumProgressLabel(schoolMonth).toLowerCase()}. Режим ВПР —
+        полный вариант, без ограничения по месяцу.
+      </p>
 
       <section className={styles.subjectPicker} aria-label="Выбор предмета">
         {visibleSubjects(profile?.selectedSubjects).map((meta) => {

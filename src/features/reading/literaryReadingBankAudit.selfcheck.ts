@@ -9,6 +9,7 @@ import { buildReadingTrainingPool, selectWeightedReadingSessionTasks } from './l
 import { getReadingSkillWeightBySkillId } from './literaryReadingTrainingWeights';
 import { generateReadingTask } from './generators/skillGenerators';
 import { taskRepository } from '../../services/taskRepository';
+import { choiceQualityIssue, matchingQualityIssue } from '../../utils/taskChoiceQuality';
 
 const REASONING_SUBTYPES = new Set([
   'find_error',
@@ -72,6 +73,10 @@ export function runReadingBankAuditSelfChecks(): string[] {
       reasoningCount += 1;
     }
     questions.set(task.question.trim(), (questions.get(task.question.trim()) ?? 0) + 1);
+    const choiceIssue = choiceQualityIssue(task);
+    check(!choiceIssue, choiceIssue ?? '');
+    const matchIssue = matchingQualityIssue(task);
+    check(!matchIssue, matchIssue ?? '');
     qaPairs.set(`${task.question}::${String(task.correctAnswer)}`, (qaPairs.get(`${task.question}::${String(task.correctAnswer)}`) ?? 0) + 1);
 
     if (task.taskType === 'singleChoice' || (task.taskType === 'imageTask' && (task.answers?.length ?? 0) >= 4)) {

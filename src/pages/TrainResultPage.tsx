@@ -156,7 +156,7 @@ export function TrainResultPage() {
         <h2>{summary.percent}%</h2>
         <p>
           {session?.mode === 'diagnostic'
-            ? 'Проверка закончена. Дальше тренажёр подберёт план по выбранным предметам.'
+            ? 'Стартовая проверка закончена. Полная картина готовности появится после тренировок — здесь только первые ориентиры.'
             : `Правильных: ${summary.correct} / ${summary.total}. Ошибок: ${summary.incorrect}.`}
         </p>
       </Card>

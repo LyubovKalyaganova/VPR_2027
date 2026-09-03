@@ -5,9 +5,16 @@ interface SingleChoiceAnswerProps {
   value: string | null;
   disabled: boolean;
   onChange: (value: string) => void;
+  formatLabel?: (option: string) => string;
 }
 
-export function SingleChoiceAnswer({ options, value, disabled, onChange }: SingleChoiceAnswerProps) {
+export function SingleChoiceAnswer({
+  options,
+  value,
+  disabled,
+  onChange,
+  formatLabel,
+}: SingleChoiceAnswerProps) {
   return (
     <div className={styles.list}>
       {options.map((option) => (
@@ -18,7 +25,7 @@ export function SingleChoiceAnswer({ options, value, disabled, onChange }: Singl
           disabled={disabled}
           onClick={() => onChange(option)}
         >
-          {option}
+          {formatLabel ? formatLabel(option) : option}
         </button>
       ))}
     </div>

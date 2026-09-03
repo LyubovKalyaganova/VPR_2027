@@ -51,6 +51,7 @@ import {
   type Level,
   type SeededRng,
 } from './generatorScaffold';
+import { buildUniqueMatching } from '../../../utils/uniqueMatching';
 
 type GenOpts = { difficulty: Difficulty; seed: number; subtype?: string };
 
@@ -97,14 +98,7 @@ function shuffleOrder<T extends string>(rng: SeededRng, items: readonly T[]): T[
 }
 
 function buildMatching(pairs: Array<{ left: string; right: string }>, rng: SeededRng) {
-  return {
-    matchingLeft: pairs.map((p) => p.left),
-    matchingRight: shuffleSeeded(
-      pairs.map((p) => p.right),
-      rng,
-    ),
-    correctAnswer: pairs.map((p) => `${p.left}|${p.right}`),
-  };
+  return buildUniqueMatching(pairs, rng);
 }
 
 function pickSubtype<T extends string>(options: GenOpts, rng: SeededRng, allowed: readonly T[]): T {
@@ -319,7 +313,7 @@ export function generateW03Task(options: GenOpts): Task {
   const stmt = pickOne(rng, W03_ZONE_STATEMENTS);
   if (subtype === 'true_false') {
     const correct = stmt.isTrue ? 'верно' : 'неверно';
-    const distractors = uniqueDistractorsFromModels(correct, ['верно', 'неверно', 'не знаю', 'частично'], rng);
+    const distractors = uniqueDistractorsFromModels(correct, ['верно', 'неверно', 'частично', 'нет данных'], rng);
     return baseTask({
       id: taskId('W03', level, options.seed, 0),
       ...m,

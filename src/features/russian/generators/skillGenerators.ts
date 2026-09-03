@@ -78,8 +78,7 @@ export function generateR01Task(options: GenOpts): Task {
   rejectAdvancedLevels('R01', options.difficulty);
   const level = options.difficulty as Level;
   const rng = createSeededRng(options.seed);
-  const item = R01_PAIRS[options.seed % R01_PAIRS.length]!;
-  const pair = item;
+  const pair = R01_PAIRS[options.seed % R01_PAIRS.length]!;
   const ruleSubtype =
     pair.rule.includes('ударн') || pair.rule.includes('гласн')
       ? 'check_vowel'
@@ -91,9 +90,11 @@ export function generateR01Task(options: GenOpts): Task {
             ? 'soft_hard'
             : pair.rule.includes('заглав')
               ? 'capital'
-              : 'other_base';
+              : pair.rule.includes('н / нн') || pair.rule.includes('приставка')
+                ? 'other_base'
+                : 'other_base';
   const subtype = (options.subtype as R01Subtype | undefined) ?? ruleSubtype;
-  const wrongForms = uniqueDistractorsFromModels(pair.correct, [pair.wrong, pair.correct + 'а', pair.correct + 'ы'], rng);
+  const wrongForms = uniqueDistractorsFromModels(pair.correct, pair.distractors, rng);
   const question =
     subtype === 'capital'
       ? `Как правильно написать имя города: «___»?`
@@ -205,8 +206,7 @@ export function generateR04Task(options: GenOpts): Task {
   const rng = createSeededRng(options.seed);
   const item = pickOne(rng, R04_VERB_SPELLING);
   const subtype = item.type === 'tся' || item.type === 'ться' ? item.type : 'personal_ending';
-  const wrong = item.wrong === item.correct ? item.correct.replace('и', 'ы') : item.wrong;
-  const distractors = uniqueDistractorsFromModels(item.correct, [wrong, item.correct + 'ь', item.correct.replace('т', 'д')], rng);
+  const distractors = uniqueDistractorsFromModels(item.correct, item.distractors, rng);
   return baseTask({
     id: taskId('R04', level, options.seed, 0),
     ...m,
@@ -382,8 +382,9 @@ export function generateR09Task(options: GenOpts): Task {
   rejectAdvancedLevels('R09', options.difficulty);
   const level = options.difficulty as Level;
   const rng = createSeededRng(options.seed);
-  const item = pickOne(rng, R09_PHONETICS);
   const askSounds = level !== 3;
+  const unequal = R09_PHONETICS.filter((row) => row.sounds !== row.letters);
+  const item = pickOne(rng, askSounds && level > 1 ? unequal : R09_PHONETICS);
   const correct = askSounds ? item.sounds : item.syllables;
   return baseTask({
     id: taskId('R09', level, options.seed, 0),
@@ -421,7 +422,7 @@ export function generateR10Task(options: GenOpts): Task {
   const item = pickOne(rng, R10_SYNTAX_BASE);
   const askSubject = level !== 2 || rng() > 0.5;
   const correct = askSubject ? item.subject : item.predicate;
-  const distractors = uniqueDistractorsFromModels(correct, [item.subject, item.predicate, 'во дворе', 'на ветке'], rng);
+  const distractors = uniqueDistractorsFromModels(correct, [item.subject, item.predicate, 'во дворе', 'утром', 'тихо'], rng);
   return baseTask({
     id: taskId('R10', level, options.seed, 0),
     ...m,
@@ -457,7 +458,7 @@ export function generateR11Task(options: GenOpts): Task {
   const item = pickOne(rng, R11_HOMOGENEOUS);
   const member = pickOne(rng, item.members);
   const notMember = member === item.members[0] ? 'во дворе' : item.members[0]!;
-  const distractors = uniqueDistractorsFromModels(member, [...item.members.filter((x) => x !== member), notMember], rng);
+  const distractors = uniqueDistractorsFromModels(member, [...item.members.filter((x) => x !== member), notMember, 'вчера', 'тихо'], rng);
   return baseTask({
     id: taskId('R11', level, options.seed, 0),
     ...m,
@@ -526,7 +527,12 @@ export function generateR13Task(options: GenOpts): Task {
   const traits = level === 1 ? ['gender'] : level === 2 ? ['gender', 'number'] : ['gender', 'number', 'case'];
   const trait = pickOne(rng, traits);
   const correct = trait === 'gender' ? item.gender : trait === 'number' ? item.number : item.case;
-  const pool = trait === 'gender' ? ['м.р.', 'ж.р.', 'ср.р.'] : trait === 'number' ? ['ед.ч.', 'мн.ч.'] : ['им.', 'род.', 'дат.'];
+  const pool =
+    trait === 'gender'
+      ? ['м.р.', 'ж.р.', 'ср.р.', 'общего рода']
+      : trait === 'number'
+        ? ['ед.ч.', 'мн.ч.', 'только ед.ч.', 'только мн.ч.']
+        : ['им.', 'род.', 'дат.', 'вин.', 'тв.', 'пр.'];
   const distractors = uniqueDistractorsFromModels(correct, pool.filter((p) => p !== correct), rng);
   return baseTask({
     id: taskId('R13', level, options.seed, 0),
@@ -560,7 +566,7 @@ export function generateR14Task(options: GenOpts): Task {
   const rng = createSeededRng(options.seed);
   const item = pickOne(rng, R14_ADJECTIVE);
   const correct = level === 1 ? item.gender : `${item.gender}, ${item.number}`;
-  const distractors = uniqueDistractorsFromModels(correct, ['м.р.', 'ж.р.', 'ср.р.', 'м.р., мн.ч.'], rng);
+  const distractors = uniqueDistractorsFromModels(correct, ['м.р.', 'ж.р.', 'ср.р.', 'м.р., ед.ч.', 'ж.р., ед.ч.', 'м.р., мн.ч.'], rng);
   return baseTask({
     id: taskId('R14', level, options.seed, 0),
     ...m,
@@ -648,7 +654,7 @@ export function generateR16Task(options: GenOpts): Task {
   const level = options.difficulty as Level;
   const rng = createSeededRng(options.seed);
   const item = pickOne(rng, R16_CONTEXT);
-  const distractors = uniqueDistractorsFromModels(item.meaning, ['цвет', 'звук', 'число', 'игрушка'], rng);
+  const distractors = uniqueDistractorsFromModels(item.meaning, item.distractors, rng);
   return baseTask({
     id: taskId('R16', level, options.seed, 0),
     ...m,
@@ -683,7 +689,11 @@ export function generateR17Task(options: GenOpts): Task {
   const item = pickOne(rng, R17_SYNONYMS);
   const askSynonym = rng() > 0.4;
   const correct = askSynonym ? item.synonym : item.antonym;
-  const distractors = uniqueDistractorsFromModels(correct, [item.word, item.synonym, item.antonym, 'другой'], rng);
+  const distractors = uniqueDistractorsFromModels(
+    correct,
+    [item.word, item.synonym, item.antonym, ...R17_SYNONYMS.flatMap((row) => [row.synonym, row.antonym])],
+    rng,
+  );
   return baseTask({
     id: taskId('R17', level, options.seed, 0),
     ...m,
@@ -734,7 +744,10 @@ export function generateR18Task(options: GenOpts): Task {
     correct = text.theme;
     question = 'Что является темой (не основной мыслью)?';
   }
-  const pool = subtype === 'heading' ? text.headings : [text.theme, text.mainIdea, 'зима в городе', 'школьные каникулы'];
+  const pool =
+    subtype === 'heading'
+      ? text.headings
+      : [text.theme, text.mainIdea, 'зима в городе', 'школьные каникулы', 'морское путешествие'];
   const distractors = uniqueDistractorsFromModels(correct, pool.filter((p) => p !== correct), rng);
   return baseTask({
     id: taskId('R18', level, options.seed, 0),
@@ -847,7 +860,7 @@ export function generateR20Task(options: GenOpts): Task {
   const level = options.difficulty as Level;
   const rng = createSeededRng(options.seed);
   const item = pickOne(rng, R20_QUESTIONS);
-  const distractors = uniqueDistractorsFromModels(item.answer, ['нигде', 'никто', 'ничего', 'вчера'], rng);
+  const distractors = uniqueDistractorsFromModels(item.answer, item.distractors, rng);
   return baseTask({
     id: taskId('R20', level, options.seed, 0),
     ...m,
@@ -860,7 +873,7 @@ export function generateR20Task(options: GenOpts): Task {
     answers: level === 1 ? undefined : buildChoiceAnswers(item.answer, distractors, rng),
     correctAnswer: item.answer,
     acceptableAnswers: level === 1 ? [item.answer, item.answer.toLowerCase()] : undefined,
-    explanation: item.type === 'fact' ? 'Ответ содержится в тексте.' : 'Ответ требует понимания текста.',
+    explanation: item.type === 'fact' ? 'Ответ прямо есть в предложении.' : 'Ответ требует понимания текста.',
     passage: item.passage,
     generatorParams: { subtype: item.type, key: item.question },
   });
@@ -953,7 +966,7 @@ export function generateR23Task(options: GenOpts): Task {
   const modes = ['find_error', 'first_step', 'next_step', 'choose_sequence'] as const;
   const mode = (options.subtype as (typeof modes)[number] | undefined) ?? pickOne(rng, modes);
   const correct = mode === 'find_error' ? item.error : item.correct;
-  const distractors = uniqueDistractorsFromModels(correct, [item.error, item.correct, 'не знаю', 'оба верны'], rng);
+  const distractors = uniqueDistractorsFromModels(correct, [item.error, item.correct, 'ошибки нет', 'оба верны'], rng);
   return baseTask({
     id: taskId('R23', level, options.seed, 0),
     ...m,
@@ -990,7 +1003,7 @@ export function generateR24Task(options: GenOpts): Task {
   const level = options.difficulty as Level;
   const rng = createSeededRng(options.seed);
   const item = pickOne(rng, R24_SENTENCE_TYPE);
-  const distractors = uniqueDistractorsFromModels(item.type, ['простое', 'сложное', 'вопросительное'], rng);
+  const distractors = uniqueDistractorsFromModels(item.type, ['простое', 'сложное', 'осложнённое однородными', 'вопросительное'], rng);
   return baseTask({
     id: taskId('R24', level, options.seed, 0),
     ...m,
@@ -1027,10 +1040,10 @@ export function generateR25Task(options: GenOpts): Task {
     trait === 'tense' ? item.tense : trait === 'conjugation' ? item.conjugation + ' спр.' : `${item.person}, ${item.number}`;
   const pool =
     trait === 'tense'
-      ? ['наст.вр.', 'прош.вр.', 'буд.вр.']
+      ? ['наст.вр.', 'прош.вр.', 'буд.вр.', 'неопр. форма']
       : trait === 'conjugation'
-        ? ['I спр.', 'II спр.']
-        : ['3 л., ед.ч.', '3 л., мн.ч.', '1 л., ед.ч.'];
+        ? ['I спр.', 'II спр.', 'разноспрягаемый', 'не спрягается']
+        : ['3 л., ед.ч.', '3 л., мн.ч.', '1 л., ед.ч.', '2 л., ед.ч.'];
   const distractors = uniqueDistractorsFromModels(correct, pool.filter((p) => p !== correct), rng);
   return baseTask({
     id: taskId('R25', level, options.seed, 0),

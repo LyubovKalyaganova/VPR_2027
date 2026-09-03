@@ -29,9 +29,13 @@ export function runClassroomReadySelfChecks(): string[] {
   check(skillsForSubject('english').length === 18, 'english skills');
 
   const diagnostic = pickDiagnosticTasks(SUBJECTS, 20270825);
-  check(diagnostic.length === 5, `diagnostic count ${diagnostic.length}`);
+  check(diagnostic.length === 15, `diagnostic count ${diagnostic.length}`);
   check(diagnostic.every((task) => task.taskType !== 'audio'), 'diagnostic without audio');
   check(new Set(diagnostic.map((task) => task.subject)).size === 5, 'diagnostic all subjects');
+  check(
+    SUBJECTS.every((subject) => diagnostic.filter((task) => task.subject === subject).length === 3),
+    'diagnostic 3 tasks per subject',
+  );
 
   const storage = createMemoryDailyPlanStorage();
   for (const subject of SUBJECTS) {
@@ -59,8 +63,13 @@ export function runClassroomReadySelfChecks(): string[] {
   check(profile.includes('selectedSubjects'), 'profile can change subjects');
 
   const onboard = read('src/pages/OnboardingPage.tsx');
-  check(onboard.includes('Короткая проверка'), 'onboarding diagnostic');
-  check(onboard.includes('Пропустить и начать'), 'onboarding can skip diagnostic');
+  check(onboard.includes('Какой сейчас месяц учёбы'), 'onboarding school month');
+  check(onboard.includes('Начать подготовку'), 'onboarding starts without diagnostic');
+  check(!onboard.includes('Пройти проверку'), 'onboarding diagnostic removed');
+
+  const curriculum = read('src/services/schoolCurriculum.ts');
+  check(curriculum.includes('UNLOCK_BY_CODE'), 'school curriculum unlock map');
+  check(curriculum.includes('schoolMonthFromDate'), 'school month from calendar');
 
   const result = read('src/pages/TrainResultPage.tsx');
   check(result.includes('К подготовке'), 'diagnostic returns to home');

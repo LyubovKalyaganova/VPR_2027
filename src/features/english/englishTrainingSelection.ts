@@ -40,13 +40,25 @@ export function generateTaskForEnglishSkillCode(code: EnglishSkillCode, difficul
 
 export function selectWeightedEnglishSessionTasks(
   count: number,
-  options?: { seed?: number; shuffleOrder?: boolean },
+  options?: { seed?: number; shuffleOrder?: boolean; allowedCodes?: readonly string[] },
 ): Task[] {
   if (count <= 0) return [];
   const baseSeed = (options?.seed ?? Date.now()) >>> 0;
-  const mix = recommendEnglishSessionSkillMix(count, baseSeed);
+  let mix = recommendEnglishSessionSkillMix(count, baseSeed);
+  if (options?.allowedCodes && options.allowedCodes.length > 0) {
+    const allowed = options.allowedCodes.filter((code): code is EnglishSkillCode =>
+      hasGeneratorForEnglishSkillCode(code),
+    );
+    if (allowed.length > 0) {
+      const set = new Set(allowed);
+      mix = mix.map((code, index) =>
+        set.has(code) ? code : allowed[(baseSeed + index) % allowed.length]!,
+      );
+    }
+  }
   const tasks: Task[] = [];
   const seenIds = new Set<string>();
+  const seenContent = new Set<string>();
 
   for (let index = 0; index < mix.length; index += 1) {
     const code = mix[index]!;
@@ -67,6 +79,9 @@ export function selectWeightedEnglishSessionTasks(
         } else {
           task = generateTaskForEnglishSkillCode(code, difficulty, (slotSeed + attempt * 104729) >>> 0);
         }
+        if (task && seenContent.has(`${task.skillId}|${task.question}|${String(task.correctAnswer)}`)) {
+          task = null;
+        }
       } catch {
         task = null;
       }
@@ -74,6 +89,7 @@ export function selectWeightedEnglishSessionTasks(
     if (!task) task = generateTaskForEnglishSkillCode(code, difficulty, slotSeed);
     if (seenIds.has(task.id)) task = { ...task, id: `${task.id}-slot${index}` };
     seenIds.add(task.id);
+    seenContent.add(`${task.skillId}|${task.question}|${String(task.correctAnswer)}`);
     tasks.push(task);
   }
 

@@ -14,7 +14,8 @@
 }
 
 .mainTight {
-  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  /* Место под sticky-кнопки «Проверить» / «Дальше» и системную панель */
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
@@ -24,7 +25,7 @@
   }
 
   .mainTight {
-    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
     max-width: 760px;
     margin: 0 auto;
     width: 100%;

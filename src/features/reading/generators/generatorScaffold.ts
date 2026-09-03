@@ -42,14 +42,9 @@ export function uniqueDistractorsFromModels(
 }
 
 export function buildChoiceAnswers(correct: number | string, distractors: string[], rng: SeededRng): string[] {
-  const pad = ['—', 'не знаю', 'другое', 'нет', '0'];
-  const pool = [...distractors];
-  while (pool.length < 3) {
-    const filler = pickOne(
-      rng,
-      pad.filter((p) => String(correct) !== p && !pool.includes(p)),
-    );
-    pool.push(filler);
+  const pool = [...new Set(distractors.map((item) => String(item)).filter((item) => item && item !== String(correct)))];
+  if (pool.length < 3) {
+    throw new Error(`Нужно 3 дистрактора без заполнителей, получено ${pool.length} для «${correct}»`);
   }
   return shuffleSeeded([String(correct), ...pool.slice(0, 3)], rng);
 }
@@ -112,6 +107,7 @@ export function baseTask(args: {
   items?: string[];
   matchingLeft?: string[];
   matchingRight?: string[];
+  matchingRowOptions?: string[][];
   acceptableAnswers?: string[];
 }): Task {
   return {
@@ -142,6 +138,7 @@ export function baseTask(args: {
     items: args.items,
     matchingLeft: args.matchingLeft,
     matchingRight: args.matchingRight,
+    matchingRowOptions: args.matchingRowOptions,
     acceptableAnswers: args.acceptableAnswers,
   };
 }

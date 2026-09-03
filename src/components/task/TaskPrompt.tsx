@@ -10,6 +10,7 @@ interface TaskPromptProps {
 export function TaskPrompt({ task }: TaskPromptProps) {
   const passage = task.passage ?? getPassage(task.textId);
   const imageSrc = task.image?.trim() ? task.image : null;
+  const question = task.question;
 
   return (
     <div className={styles.wrap}>
@@ -17,7 +18,7 @@ export function TaskPrompt({ task }: TaskPromptProps) {
       {imageSrc ? (
         <img src={imageSrc} alt="Иллюстрация к заданию" className={styles.image} />
       ) : null}
-      <p className={styles.question}>{task.question}</p>
+      <p className={styles.question}>{question}</p>
     </div>
   );
 }

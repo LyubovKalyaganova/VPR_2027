@@ -5,6 +5,7 @@ export type UserAnswer = string | number | string[] | Record<string, string> | n
 export interface TaskPresentation {
   options?: string[];
   matchingRight?: string[];
+  matchingRowOptions?: string[][];
   items?: string[];
 }
 

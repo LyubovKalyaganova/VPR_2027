@@ -1,5 +1,6 @@
 import type { Task } from '../../types';
 import type { TaskPresentation, UserAnswer } from '../../engine';
+import { englishAnswerLabel } from '../../features/english/englishTaskUi';
 import { ClassificationAnswer } from './answers/ClassificationAnswer';
 import { FillBlankAnswer } from './answers/FillBlankAnswer';
 import { MatchingAnswer } from './answers/MatchingAnswer';
@@ -19,6 +20,8 @@ interface AnswerAreaProps {
 }
 
 export function AnswerArea({ task, presentation, answer, disabled, onChange }: AnswerAreaProps) {
+  const englishLabels = task.subject === 'english' ? englishAnswerLabel : undefined;
+
   switch (task.taskType) {
     case 'singleChoice':
       return (
@@ -27,6 +30,7 @@ export function AnswerArea({ task, presentation, answer, disabled, onChange }: A
           value={typeof answer === 'string' ? answer : null}
           disabled={disabled}
           onChange={onChange}
+          formatLabel={englishLabels}
         />
       );
     case 'multipleChoice':
@@ -55,6 +59,7 @@ export function AnswerArea({ task, presentation, answer, disabled, onChange }: A
         <MatchingAnswer
           left={task.matchingLeft ?? []}
           right={presentation.matchingRight ?? task.matchingRight ?? []}
+          rowOptions={presentation.matchingRowOptions ?? task.matchingRowOptions}
           value={answer && typeof answer === 'object' && !Array.isArray(answer) ? answer : {}}
           disabled={disabled}
           onChange={onChange}
@@ -88,6 +93,8 @@ export function AnswerArea({ task, presentation, answer, disabled, onChange }: A
         <AudioAnswer
           task={task}
           options={presentation.options ?? task.answers ?? []}
+          matchingRight={presentation.matchingRight ?? task.matchingRight}
+          rowOptions={presentation.matchingRowOptions ?? task.matchingRowOptions}
           value={answer}
           disabled={disabled}
           onChange={onChange}
@@ -102,6 +109,7 @@ export function AnswerArea({ task, presentation, answer, disabled, onChange }: A
             value={typeof answer === 'string' ? answer : null}
             disabled={disabled}
             onChange={onChange}
+            formatLabel={englishLabels}
           />
         );
       }

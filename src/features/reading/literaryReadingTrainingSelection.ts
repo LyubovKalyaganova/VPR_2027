@@ -40,11 +40,22 @@ export function generateTaskForReadingSkillCode(code: ReadingSkillCode, difficul
 
 export function selectWeightedReadingSessionTasks(
   count: number,
-  options?: { seed?: number; shuffleOrder?: boolean },
+  options?: { seed?: number; shuffleOrder?: boolean; allowedCodes?: readonly string[] },
 ): Task[] {
   if (count <= 0) return [];
   const baseSeed = (options?.seed ?? Date.now()) >>> 0;
-  const mix = recommendReadingSessionSkillMix(count, baseSeed);
+  let mix = recommendReadingSessionSkillMix(count, baseSeed);
+  if (options?.allowedCodes && options.allowedCodes.length > 0) {
+    const allowed = options.allowedCodes.filter((code): code is ReadingSkillCode =>
+      hasGeneratorForReadingSkillCode(code),
+    );
+    if (allowed.length > 0) {
+      const set = new Set(allowed);
+      mix = mix.map((code, index) =>
+        set.has(code) ? code : allowed[(baseSeed + index) % allowed.length]!,
+      );
+    }
+  }
   const tasks: Task[] = [];
   const seenIds = new Set<string>();
 

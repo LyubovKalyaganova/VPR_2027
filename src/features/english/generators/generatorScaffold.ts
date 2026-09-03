@@ -42,14 +42,9 @@ export function uniqueDistractorsFromModels(
 }
 
 export function buildChoiceAnswers(correct: number | string, distractors: string[], rng: SeededRng): string[] {
-  const pad = ['—', 'not sure', 'other', 'none', '0'];
-  const pool = [...distractors];
-  while (pool.length < 3) {
-    const filler = pickOne(
-      rng,
-      pad.filter((p) => String(correct) !== p && !pool.includes(p)),
-    );
-    pool.push(filler);
+  const pool = [...new Set(distractors.map((item) => String(item)).filter((item) => item && item !== String(correct)))];
+  if (pool.length < 3) {
+    throw new Error(`Need 3 real distractors, got ${pool.length} for «${correct}»`);
   }
   return shuffleSeeded([String(correct), ...pool.slice(0, 3)], rng);
 }
@@ -112,6 +107,7 @@ export function baseTask(args: {
   listenLimit?: number;
   matchingLeft?: string[];
   matchingRight?: string[];
+  matchingRowOptions?: string[][];
   acceptableAnswers?: string[];
   items?: string[];
   vprTaskType?: string;
@@ -132,11 +128,11 @@ export function baseTask(args: {
     answers: args.answers,
     correctAnswer: args.correctAnswer,
     explanation: args.explanation,
-    hint1: args.hint1 ?? 'Read the instructions carefully.',
-    hint2: args.hint2 ?? 'Find evidence in the text or audio.',
+    hint1: args.hint1 ?? 'Внимательно прочитай задание.',
+    hint2: args.hint2 ?? 'Найди подсказку в тексте или в записи.',
     hint3:
       args.hint3 ??
-      `Answer: ${Array.isArray(args.correctAnswer) ? args.correctAnswer.join(', ') : args.correctAnswer}.`,
+      `Правильный ответ: ${Array.isArray(args.correctAnswer) ? args.correctAnswer.join(', ') : args.correctAnswer}.`,
     sourceType: 'generated',
     generatorId: args.generatorId,
     generatorParams: args.generatorParams,
@@ -145,6 +141,7 @@ export function baseTask(args: {
     listenLimit: args.listenLimit,
     matchingLeft: args.matchingLeft,
     matchingRight: args.matchingRight,
+    matchingRowOptions: args.matchingRowOptions,
     acceptableAnswers: args.acceptableAnswers,
     items: args.items,
   };

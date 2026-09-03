@@ -2,21 +2,25 @@
  * Контент-банки для генераторов R01–R25 (4 класс, ВПР-2027).
  */
 
-export type OrthoPair = { wrong: string; correct: string; rule: string; hint: string };
+export type OrthoPair = { correct: string; distractors: [string, string, string]; rule: string; hint: string };
 
 export const R01_PAIRS: OrthoPair[] = [
-  { wrong: 'леснОй', correct: 'лесной', rule: 'безударная гласная в корне', hint: 'проверочное слово «лес»' },
-  { wrong: 'карова', correct: 'корова', rule: 'безударная гласная в корне', hint: '«кóровы»' },
-  { wrong: 'зделал', correct: 'сделал', rule: 'непроизносимый согласный', hint: '«сделанный»' },
-  { wrong: 'снежок', correct: 'снежок', rule: 'парный согласный', hint: '«снежок — снежка»' },
-  { wrong: 'молоко', correct: 'молоко', rule: 'безударная гласная', hint: '«мóлоко»' },
-  { wrong: 'ветреный', correct: 'ветреный', rule: 'парный согласный', hint: '«ветер»' },
-  { wrong: 'приехал', correct: 'приехал', rule: 'приставка ПРИ-', hint: 'приставка «при-»' },
-  { wrong: 'обезьяна', correct: 'обезьяна', rule: 'мягкий знак', hint: 'разделительный ь' },
-  { wrong: 'подьезд', correct: 'подъезд', rule: 'разделительный ъ', hint: '«подъезд»' },
-  { wrong: 'Москва', correct: 'Москва', rule: 'заглавная буква', hint: 'имя собственное' },
-  { wrong: 'осень', correct: 'осень', rule: 'мягкий знак', hint: 'на конце прилагательного' },
-  { wrong: 'сапоги', correct: 'сапоги', rule: 'безударная гласная', hint: '«сапог»' },
+  { correct: 'лесной', distractors: ['лисной', 'лясной', 'лесный'], rule: 'безударная гласная в корне', hint: 'проверочное слово «лес»' },
+  { correct: 'корова', distractors: ['карова', 'курова', 'карава'], rule: 'безударная гласная в корне', hint: 'проверочное «кóровы»' },
+  { correct: 'сделал', distractors: ['зделал', 'сдетал', 'зделл'], rule: 'приставка с- (не з-)', hint: 'приставки «з-» нет: сделал, списал' },
+  { correct: 'снежок', distractors: ['снешок', 'снижок', 'снежёк'], rule: 'парный согласный в корне', hint: 'проверь: снежка' },
+  { correct: 'молоко', distractors: ['малако', 'мулако', 'малака'], rule: 'безударные гласные в корне', hint: 'не пиши «как слышится»: проверь ударением' },
+  { correct: 'ветреный', distractors: ['ветренный', 'ветрянный', 'ветреной'], rule: 'н / нн в суффиксе', hint: 'ветреный день — исключение, одно н' },
+  { correct: 'приехал', distractors: ['преехал', 'приихал', 'приехол'], rule: 'приставка ПРИ-', hint: 'приближение: при- (не пре-)' },
+  { correct: 'обезьяна', distractors: ['обезяна', 'абезьяна', 'обезьянна'], rule: 'разделительный ь', hint: 'после согласной перед я — ь' },
+  { correct: 'подъезд', distractors: ['подьезд', 'падъезд', 'подъесд'], rule: 'разделительный ъ', hint: 'после приставки перед е, ё, ю, я — ъ' },
+  { correct: 'Москва', distractors: ['москва', 'Масква', 'москова'], rule: 'заглавная буква', hint: 'имена собственные — с большой буквы' },
+  { correct: 'осень', distractors: ['осен', 'осенн', 'асень'], rule: 'мягкий знак на конце', hint: 'ж.р. 3 скл.: ночь, осень' },
+  { correct: 'сапоги', distractors: ['сапаги', 'сопоги', 'сапогы'], rule: 'безударная гласная в корне', hint: 'проверочное «сапóг»' },
+  { correct: 'сердце', distractors: ['серце', 'сердцэ', 'сирдце'], rule: 'непроизносимый согласный', hint: 'проверочное «сердечный»' },
+  { correct: 'местный', distractors: ['месный', 'местсный', 'мястный'], rule: 'непроизносимый согласный', hint: 'проверочное «место»' },
+  { correct: 'вода', distractors: ['вада', 'вуда', 'вады'], rule: 'безударная гласная в корне', hint: 'проверочное «вóды»' },
+  { correct: 'классный', distractors: ['класный', 'кластный', 'класннй'], rule: 'удвоенная согласная', hint: 'в корне класс — две с' },
 ];
 
 export const R02_NOUN_ENDINGS = [
@@ -28,18 +32,48 @@ export const R02_NOUN_ENDINGS = [
 ];
 
 export const R03_ADJ_ENDINGS = [
-  { stem: 'красив', endings: ['ый', 'ая', 'ое', 'ые'], correct: 'ая', context: 'красив___ платье → красивое платье', noun: 'платье', gender: 'ср' },
+  { stem: 'красив', endings: ['ый', 'ая', 'ое', 'ые'], correct: 'ое', context: 'красив___ платье', noun: 'платье', gender: 'ср' },
   { stem: 'син', endings: ['ий', 'яя', 'ее', 'ие'], correct: 'яя', context: 'син___ река', noun: 'река', gender: 'ж' },
   { stem: 'нов', endings: ['ый', 'ая', 'ое', 'ые'], correct: 'ый', context: 'нов___ дом', noun: 'дом', gender: 'м' },
   { stem: 'весенн', endings: ['ий', 'яя', 'ее', 'ие'], correct: 'ие', context: 'весенн___ дни', noun: 'дни', gender: 'мн' },
 ];
 
 export const R04_VERB_SPELLING = [
-  { wrong: 'учится', correct: 'учится', type: 'tся', sentence: 'Маша учит___ правила.', explanation: '-тся без ь — нет «я»' },
-  { wrong: 'учиться', correct: 'учиться', type: 'ться', sentence: 'Маша хочет учит___ .', explanation: '-ться с ь — можно «я»' },
-  { wrong: 'пишет', correct: 'пишет', type: 'ending', sentence: 'Он пиш___ письмо.', explanation: '3 л., е.ч., наст. вр.' },
-  { wrong: 'пишут', correct: 'пишут', type: 'ending', sentence: 'Дети пиш___ диктант.', explanation: '3 л., мн.ч.' },
-  { wrong: 'летит', correct: 'летит', type: 'ending', sentence: 'Птица лет___ .', explanation: 'II спряжение, -ит' },
+  {
+    correct: 'учится',
+    distractors: ['учиться', 'учитца', 'учица'],
+    type: 'tся',
+    sentence: 'Маша учит___ правила. (что делает?)',
+    explanation: 'Нет вопроса «что делать?» — пишем -тся без ь.',
+  },
+  {
+    correct: 'учиться',
+    distractors: ['учится', 'учитца', 'учица'],
+    type: 'ться',
+    sentence: 'Маша хочет учит___ . (что делать?)',
+    explanation: 'Есть вопрос «что делать?» — пишем -ться с ь.',
+  },
+  {
+    correct: 'пишет',
+    distractors: ['пишетсь', 'пишот', 'пишит'],
+    type: 'ending',
+    sentence: 'Он пиш___ письмо.',
+    explanation: 'I спряжение, 3 лицо ед. ч.: -ет.',
+  },
+  {
+    correct: 'пишут',
+    distractors: ['пишет', 'пишют', 'писают'],
+    type: 'ending',
+    sentence: 'Дети пиш___ диктант.',
+    explanation: 'I спряжение, 3 лицо мн. ч.: -ут.',
+  },
+  {
+    correct: 'летит',
+    distractors: ['летет', 'летитсь', 'летитт'],
+    type: 'ending',
+    sentence: 'Птица лет___ к гнезду.',
+    explanation: 'II спряжение, 3 лицо ед. ч.: -ит.',
+  },
 ];
 
 export const R05_PUNCTUATION = [
@@ -60,30 +94,34 @@ export const R06_PROOFREADING = [
 ];
 
 export const R07_DICTATION = [
-  { word: 'осень', distractors: ['осен', 'осенн', 'осеннь'], transcript: 'о-се́нь' },
-  { word: 'природа', distractors: ['прерода', 'природа́', 'прерода́'], transcript: 'при-ро-да́' },
-  { word: 'листья', distractors: ['листя', 'листье', 'листя́'], transcript: 'лист-ья́' },
-  { word: 'собирать', distractors: ['сабирать', 'соберать', 'сабира́ть'], transcript: 'со-би-ра́ть' },
-  { word: 'красивый', distractors: ['красивий', 'красивы', 'красивыйй'], transcript: 'кра-си́-вый' },
-  { word: 'дорога', distractors: ['дарога', 'дорога́', 'дарога́'], transcript: 'до-ро-га́' },
-  { word: 'учитель', distractors: ['учител', 'учителль', 'учител'], transcript: 'у-чи-тель' },
-  { word: 'письмо', distractors: ['писмо', 'письмmo', 'письмоо'], transcript: 'пись-мо́' },
+  { word: 'осень', distractors: ['осен', 'осенн', 'асень'], transcript: 'о-се́нь' },
+  { word: 'природа', distractors: ['прерода', 'природаа', 'периода'], transcript: 'при-ро-да́' },
+  { word: 'листья', distractors: ['листя', 'листье', 'листяя'], transcript: 'лист-ья́' },
+  { word: 'собирать', distractors: ['сабирать', 'соберать', 'сабератъ'], transcript: 'со-би-ра́ть' },
+  { word: 'красивый', distractors: ['красивий', 'красевый', 'красивыый'], transcript: 'кра-си́-вый' },
+  { word: 'дорога', distractors: ['дарога', 'дарогаа', 'дурога'], transcript: 'до-ро-га́' },
+  { word: 'учитель', distractors: ['учител', 'учитил', 'учитиль'], transcript: 'у-чи-тель' },
+  { word: 'письмо', distractors: ['писмо', 'письмао', 'песьмо'], transcript: 'пись-мо́' },
 ];
 
 export const R08_STRESS = [
-  { word: 'звонит', stress: 2, options: ['звОнит', 'звонИт', 'звонит'] },
-  { word: 'торты', stress: 2, options: ['тОрты', 'тортЫ', 'торты'] },
-  { word: 'средства', stress: 1, options: ['срЕдства', 'средствА', 'средства'] },
-  { word: 'каталог', stress: 3, options: ['кАталог', 'каталОг', 'каталог'] },
-  { word: 'было', stress: 2, options: ['бЫло', 'былО', 'было'] },
+  { word: 'звонит', stress: 2, options: ['звОнит', 'звонИт', 'звОнИт', 'звонит'] },
+  { word: 'торты', stress: 2, options: ['тОрты', 'тортЫ', 'тОртЫ', 'торты'] },
+  { word: 'средства', stress: 1, options: ['срЕдства', 'средствА', 'средствА́', 'средства'] },
+  { word: 'каталог', stress: 3, options: ['кАталог', 'катАлог', 'каталОг', 'каталог'] },
+  { word: 'было', stress: 2, options: ['бЫло', 'былО', 'бЫлО', 'было'] },
+  { word: 'звонят', stress: 2, options: ['звОнят', 'звонЯт', 'звОнЯт', 'звонят'] },
 ];
 
 export const R09_PHONETICS = [
-  { word: 'лес', sounds: 4, letters: 3, syllables: 1 },
-  { word: 'книга', sounds: 5, letters: 5, syllables: 2 },
-  { word: 'школа', sounds: 5, letters: 5, syllables: 2 },
   { word: 'яма', sounds: 4, letters: 3, syllables: 2 },
-  { word: 'мост', sounds: 5, letters: 4, syllables: 1 },
+  { word: 'соль', sounds: 3, letters: 4, syllables: 1 },
+  { word: 'конь', sounds: 3, letters: 4, syllables: 1 },
+  { word: 'юла', sounds: 4, letters: 3, syllables: 2 },
+  { word: 'день', sounds: 3, letters: 4, syllables: 1 },
+  { word: 'солнце', sounds: 5, letters: 6, syllables: 2 },
+  { word: 'яблоко', sounds: 7, letters: 6, syllables: 3 },
+  { word: 'ель', sounds: 3, letters: 3, syllables: 1 },
 ];
 
 export const R10_SYNTAX_BASE = [
@@ -130,9 +168,30 @@ export const R15_MORPHEMES = [
 ];
 
 export const R16_CONTEXT = [
-  { sentence: 'Птица построила гнездо на высокой ветке.', word: 'ветке', meaning: 'часть дерева' },
-  { sentence: 'Мальчик получил отличную оценку.', word: 'оценку', meaning: 'результат проверки знаний' },
-  { sentence: 'Река вышла из берегов после дождя.', word: 'берегов', meaning: 'края реки' },
+  {
+    sentence: 'Девочка заплела длинную косу.',
+    word: 'косу',
+    meaning: 'причёска из заплетённых волос',
+    distractors: ['сельскохозяйственное орудие', 'песчаная отмель у моря', 'музыкальный инструмент'],
+  },
+  {
+    sentence: 'От двери не подошёл ключ.',
+    word: 'ключ',
+    meaning: 'предмет, которым открывают замок',
+    distractors: ['родник, источник воды', 'подсказка к загадке', 'нота в музыке'],
+  },
+  {
+    sentence: 'На грядке вырос горький лук.',
+    word: 'лук',
+    meaning: 'овощ',
+    distractors: ['оружие со стрелами', 'изгиб реки', 'название цветка'],
+  },
+  {
+    sentence: 'Птица сидит на тонкой ветке.',
+    word: 'ветке',
+    meaning: 'часть дерева',
+    distractors: ['вид транспорта', 'школьный предмет', 'время суток'],
+  },
 ];
 
 export const R17_SYNONYMS = [
@@ -149,7 +208,7 @@ export const R18_TEXTS = [
       'Наступила осень. Листья на деревьях пожелтели и опали. В лесу стало тихо. Птицы улетели на юг. Только вороны каркают на голых ветках.',
     theme: 'осень в лесу',
     mainIdea: 'осенью лес меняется',
-    headings: ['Осенний лес', 'Лето в лесу', 'Зимние забавы'],
+    headings: ['Осенний лес', 'Лето в лесу', 'Зимние забавы', 'Школьный двор'],
   },
   {
     title: 'Первый снег',
@@ -157,7 +216,7 @@ export const R18_TEXTS = [
       'Утром выпал первый снег. Дети радостно выбежали во двор. Они лепили снеговика и играли в снежки. Все были счастливы.',
     theme: 'первый снег',
     mainIdea: 'дети радуются первому снегу',
-    headings: ['Первый снег', 'Летний дождь', 'Осенний листопад'],
+    headings: ['Первый снег', 'Летний дождь', 'Осенний листопад', 'Урок математики'],
   },
 ];
 
@@ -177,8 +236,27 @@ export const R19_PLANS = [
 ];
 
 export const R20_QUESTIONS = [
-  { passage: 'Кошка спала на подоконнике и мурлыкала.', question: 'Где спала кошка?', answer: 'на подоконнике', type: 'fact' },
-  { passage: 'Мальчик помог бабушке перейти дорогу.', question: 'Какой мальчик?', answer: 'добрый / внимательный', type: 'inference' },
+  {
+    passage: 'Кошка спала на подоконнике и мурлыкала.',
+    question: 'Где спала кошка?',
+    answer: 'на подоконнике',
+    distractors: ['на диване', 'в корзине', 'у двери'],
+    type: 'fact' as const,
+  },
+  {
+    passage: 'Мальчик помог бабушке перейти дорогу.',
+    question: 'Кому помог мальчик?',
+    answer: 'бабушке',
+    distractors: ['маме', 'учителю', 'другу'],
+    type: 'fact' as const,
+  },
+  {
+    passage: 'Мальчик помог бабушке перейти дорогу.',
+    question: 'Что сделал мальчик?',
+    answer: 'помог перейти дорогу',
+    distractors: ['купил хлеб', 'пошёл в школу', 'нарисовал рисунок'],
+    type: 'fact' as const,
+  },
 ];
 
 export const R21_SPEECH = [

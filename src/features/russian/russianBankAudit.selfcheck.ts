@@ -8,6 +8,7 @@ import { buildRussianTrainingPool, selectWeightedRussianSessionTasks } from './r
 import { getRussianSkillWeightBySkillId } from './russianTrainingWeights';
 import { generateRussianTask } from './generators/skillGenerators';
 import { taskRepository } from '../../services/taskRepository';
+import { choiceQualityIssue, matchingQualityIssue } from '../../utils/taskChoiceQuality';
 
 const REASONING_SUBTYPES = new Set([
   'find_error_rule',
@@ -59,6 +60,10 @@ export function runRussianBankAuditSelfChecks(): string[] {
     qaPairs.set(qaKey, (qaPairs.get(qaKey) ?? 0) + 1);
 
     check(task.question.trim().length > 5, `empty question ${task.id}`);
+    const choiceIssue = choiceQualityIssue(task);
+    check(!choiceIssue, choiceIssue ?? '');
+    const matchIssue = matchingQualityIssue(task);
+    check(!matchIssue, matchIssue ?? '');
     check(String(task.correctAnswer).length > 0, `empty answer ${task.id}`);
 
     if (task.taskType === 'singleChoice' || task.taskType === 'audio' || task.taskType === 'imageTask') {

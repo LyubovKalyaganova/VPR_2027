@@ -18,9 +18,21 @@ export function dedupeTasksById(tasks: Task[]): Task[] {
 
 /**
  * Случайная тренировка: равномерный shuffle из банка предмета (не weighted mix).
+ * Опционально — только открытые по учебному месяцу навыки.
  */
-export function pickRandomSubjectTasks(subject: SubjectId, count: number): Task[] {
-  const pool = dedupeTasksById(taskRepository.getBySubject(subject));
+export function pickRandomSubjectTasks(
+  subject: SubjectId,
+  count: number,
+  options?: { allowedSkillIds?: readonly string[] },
+): Task[] {
+  let pool = dedupeTasksById(taskRepository.getBySubject(subject));
+  if (options?.allowedSkillIds && options.allowedSkillIds.length > 0) {
+    const allowed = new Set(options.allowedSkillIds);
+    const filtered = pool.filter((task) => task.skillId && allowed.has(task.skillId));
+    if (filtered.length > 0) {
+      pool = filtered;
+    }
+  }
   if (pool.length === 0) {
     return [];
   }

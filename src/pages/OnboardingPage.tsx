@@ -2,22 +2,26 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AVATAR_COLORS } from '../data/demo/avatars';
 import { SUBJECTS } from '../data/demo/subjects';
+import {
+  SCHOOL_MONTHS,
+  schoolMonthFromDate,
+  type SchoolMonth,
+} from '../services/schoolCurriculum';
 import { useUserStore } from '../store/useUserStore';
-import { useTrainingStore } from '../store/useTrainingStore';
 import type { SubjectId } from '../types';
 import { Avatar, Button, Card } from '../components/ui';
 import styles from './OnboardingPage.module.css';
 
-const STEPS = ['Приветствие', 'Имя', 'Класс', 'Предметы', 'Диагностика'];
+const STEPS = ['Приветствие', 'Имя', 'Класс', 'Предметы', 'Месяц'];
 
 export function OnboardingPage() {
   const navigate = useNavigate();
   const completeOnboarding = useUserStore((state) => state.completeOnboarding);
-  const startDiagnostic = useTrainingStore((state) => state.startDiagnostic);
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState<string>(AVATAR_COLORS[0]);
   const [selectedSubjects, setSelectedSubjects] = useState<SubjectId[]>(SUBJECTS.map((item) => item.id));
+  const [schoolMonth, setSchoolMonth] = useState<SchoolMonth>(() => schoolMonthFromDate());
 
   const canContinue = useMemo(() => {
     if (step === 1) {
@@ -40,27 +44,9 @@ export function OnboardingPage() {
       name: name.trim() || 'Ученик',
       avatar,
       selectedSubjects,
+      schoolMonth,
     });
     navigate('/', { replace: true });
-  }
-
-  function startCheck() {
-    completeOnboarding({
-      name: name.trim() || 'Ученик',
-      avatar,
-      selectedSubjects,
-    });
-    const userId = useUserStore.getState().profile?.userId;
-    if (!userId) {
-      navigate('/', { replace: true });
-      return;
-    }
-    const sessionId = startDiagnostic(userId, selectedSubjects);
-    if (!sessionId) {
-      navigate('/', { replace: true });
-      return;
-    }
-    navigate(`/train/session/${sessionId}`, { replace: true });
   }
 
   return (
@@ -76,8 +62,8 @@ export function OnboardingPage() {
           <p className={styles.kicker}>ВПР 4 класс 2027</p>
           <h1>Привет! Давай настроим тренажёр</h1>
           <p className={styles.lead}>
-            Сначала коротко познакомимся. Потом приложение поможет понять, что уже получается, а что стоит
-            потренировать. Это учебный тренажёр, а не официальная ВПР.
+            Сначала коротко познакомимся. Темы будут открываться по учебному году — как в школе с сентября. Это
+            учебный тренажёр, а не официальная ВПР.
           </p>
         </section>
       ) : null}
@@ -156,11 +142,27 @@ export function OnboardingPage() {
 
       {step === 4 ? (
         <section className={styles.block}>
-          <h1>Короткая проверка</h1>
+          <h1>Какой сейчас месяц учёбы?</h1>
           <p className={styles.lead}>
-            По одному простому заданию из каждого выбранного предмета. Так тренажёр поймёт, с чего тебе начать.
-            Можно пропустить и сразу перейти к подготовке.
+            Откроем темы, которые обычно уже проходят к этому месяцу. Поздние темы 4 класса появятся позже — как в
+            школе.
           </p>
+          <div className={styles.subjectList}>
+            {SCHOOL_MONTHS.map((month) => (
+              <button
+                key={month.id}
+                type="button"
+                className={`${styles.subject} ${schoolMonth === month.id ? styles.subjectSelected : ''}`}
+                onClick={() => setSchoolMonth(month.id)}
+              >
+                <span className={styles.subjectMark} style={{ background: 'var(--color-accent)' }} />
+                <span>
+                  <strong>{month.title}</strong>
+                  <em>{month.id === 1 ? 'Старт учебного года' : `Темы с сентября по ${month.title.toLowerCase()}`}</em>
+                </span>
+              </button>
+            ))}
+          </div>
         </section>
       ) : null}
 
@@ -170,16 +172,11 @@ export function OnboardingPage() {
             Дальше
           </Button>
         ) : (
-          <>
-            <Button fullWidth onClick={startCheck}>
-              Пройти проверку
-            </Button>
-            <Button fullWidth variant="secondary" onClick={finish}>
-              Пропустить и начать
-            </Button>
-          </>
+          <Button fullWidth onClick={finish}>
+            Начать подготовку
+          </Button>
         )}
-        {step > 0 && step < 4 ? (
+        {step > 0 ? (
           <Button variant="ghost" fullWidth onClick={() => setStep((current) => current - 1)}>
             Назад
           </Button>

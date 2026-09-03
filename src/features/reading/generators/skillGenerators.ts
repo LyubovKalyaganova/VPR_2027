@@ -44,6 +44,7 @@ import {
   type Level,
   type SeededRng,
 } from './generatorScaffold';
+import { pickDistinctPairs, buildUniqueMatching } from '../../../utils/uniqueMatching';
 
 type GenOpts = { difficulty: Difficulty; seed: number; subtype?: string };
 
@@ -79,14 +80,7 @@ function shuffleOrder<T extends string>(rng: SeededRng, items: readonly T[]): T[
 }
 
 function buildMatching(pairs: Array<{ left: string; right: string }>, rng: SeededRng) {
-  return {
-    matchingLeft: pairs.map((p) => p.left),
-    matchingRight: shuffleSeeded(
-      pairs.map((p) => p.right),
-      rng,
-    ),
-    correctAnswer: pairs.map((p) => `${p.left}|${p.right}`),
-  };
+  return buildUniqueMatching(pairs, rng);
 }
 
 function pickSubtype<T extends string>(options: GenOpts, rng: SeededRng, allowed: readonly T[]): T {
@@ -144,7 +138,7 @@ export function generateL01Task(options: GenOpts): Task {
     const correct = item.folkloreGenre;
     const distractors = uniqueDistractorsFromModels(
       correct,
-      L01_FOLKLORE.map((f) => f.folkloreGenre),
+      L01_FOLKLORE.map((f) => f.folkloreGenre).concat(['пословица', 'загадка']),
       rng,
     );
     return baseTask({
@@ -166,7 +160,7 @@ export function generateL01Task(options: GenOpts): Task {
   const correct = item.fairyType;
   const distractors = uniqueDistractorsFromModels(
     correct,
-    L01_FOLKLORE.map((f) => f.fairyType),
+    [...L01_FOLKLORE.map((f) => f.fairyType), 'богатырская', 'докучная'],
     rng,
   );
   return baseTask({
@@ -206,8 +200,12 @@ export function generateL02Task(options: GenOpts): Task {
   const item = pickOne(rng, L02_GENRES);
 
   if (subtype === 'match_genre') {
-    const slice = shuffleSeeded([...L02_GENRES], rng).slice(0, 3);
-    const pairs = slice.map((g) => ({ left: g.title, right: g.genre }));
+    const pairs = pickDistinctPairs(
+      L02_GENRES,
+      (g) => ({ left: g.title, right: g.genre }),
+      rng,
+      3,
+    );
     const match = buildMatching(pairs, rng);
     return baseTask({
       id: taskId('L02', level, options.seed, 0),
@@ -220,7 +218,7 @@ export function generateL02Task(options: GenOpts): Task {
       question: 'Соедини произведение и жанр:',
       ...match,
       explanation: 'Жанр определяется по объёму, форме и характеру событий.',
-      generatorParams: { subtype, key: slice.map((g) => g.title).join('|') },
+      generatorParams: { subtype, key: pairs.map((p) => p.left).join('|') },
     });
   }
 
@@ -389,11 +387,15 @@ export function generateL04Task(options: GenOpts): Task {
   const item = pickOne(rng, L04_BOOKS);
 
   if (subtype === 'cover_match' || level >= 2) {
-    const slice = shuffleSeeded([...L04_BOOKS], rng).slice(0, 3);
-    const pairs =
-      subtype === 'cover_match'
-        ? slice.map((b) => ({ left: b.coverHint, right: b.genre }))
-        : slice.map((b) => ({ left: b.title, right: b.genre }));
+    const pairs = pickDistinctPairs(
+      L04_BOOKS,
+      (b) =>
+        subtype === 'cover_match'
+          ? { left: b.coverHint, right: b.genre }
+          : { left: b.title, right: b.genre },
+      rng,
+      3,
+    );
     const match = buildMatching(pairs, rng);
     return baseTask({
       id: taskId('L04', level, options.seed, 0),
@@ -409,7 +411,7 @@ export function generateL04Task(options: GenOpts): Task {
           : 'Соедини название книги и жанр:',
       ...match,
       explanation: 'По названию и оформлению можно определить жанр книги.',
-      generatorParams: { subtype, key: slice.map((b) => b.title).join('|') },
+      generatorParams: { subtype, key: pairs.map((p) => p.left).join('|') },
     });
   }
 
@@ -453,7 +455,7 @@ export function generateL05Task(options: GenOpts): Task {
   const item = pickOne(rng, L05_TEXT_TYPES);
   const subtype = pickSubtype(options, rng, ['fiction_nonfiction', 'text_type'] as const);
   const correct = item.textType;
-  const distractors = uniqueDistractorsFromModels(correct, ['художественный', 'познавательный'], rng);
+  const distractors = uniqueDistractorsFromModels(correct, ['художественный', 'познавательный', 'деловой', 'научно-популярный'], rng);
   const question =
     subtype === 'text_type'
       ? `Какой это текст?\n«${item.snippet}»`
@@ -628,7 +630,7 @@ export function generateL08Task(options: GenOpts): Task {
     const claims = getPassageById(item.passageId).claims;
     const claim = pickOne(rng, claims);
     const correct = claim.true ? 'верно' : 'неверно';
-    const distractors = uniqueDistractorsFromModels(correct, ['верно', 'неверно', 'не знаю'], rng);
+    const distractors = uniqueDistractorsFromModels(correct, ['верно', 'неверно', 'частично', 'нет данных'], rng);
     return baseTask({
       id: taskId('L08', level, options.seed, 0),
       ...m,
@@ -1489,7 +1491,7 @@ export function generateL22Task(options: GenOpts): Task {
   const item = pickOne(rng, L22_PROSE_POETRY);
   const subtype = pickSubtype(options, rng, ['prose_poetry', 'rhyme_rhythm'] as const);
   const correct = item.form;
-  const distractors = uniqueDistractorsFromModels(correct, ['проза', 'поэзия'], rng);
+  const distractors = uniqueDistractorsFromModels(correct, ['проза', 'поэзия', 'драма', 'фольклор'], rng);
   return baseTask({
     id: taskId('L22', level, options.seed, 0),
     ...m,

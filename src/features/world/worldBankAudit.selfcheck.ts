@@ -9,6 +9,7 @@ import { buildWorldTrainingPool, selectWeightedWorldSessionTasks } from './world
 import { getWorldSkillWeightBySkillId } from './worldTrainingWeights';
 import { generateWorldTask } from './generators/skillGenerators';
 import { taskRepository } from '../../services/taskRepository';
+import { choiceQualityIssue, matchingQualityIssue } from '../../utils/taskChoiceQuality';
 
 const REASONING_SUBTYPES = new Set([
   'find_error',
@@ -87,6 +88,10 @@ export function runWorldBankAuditSelfChecks(): string[] {
     qaPairs.set(qaKey, (qaPairs.get(qaKey) ?? 0) + 1);
 
     check(task.question.trim().length > 5, `empty question ${task.id}`);
+    const choiceIssue = choiceQualityIssue(task);
+    check(!choiceIssue, choiceIssue ?? '');
+    const matchIssue = matchingQualityIssue(task);
+    check(!matchIssue, matchIssue ?? '');
     check(String(task.correctAnswer).length > 0 || Array.isArray(task.correctAnswer), `empty answer ${task.id}`);
 
     if (task.taskType === 'singleChoice' || (task.taskType === 'imageTask' && (task.answers?.length ?? 0) >= 4)) {

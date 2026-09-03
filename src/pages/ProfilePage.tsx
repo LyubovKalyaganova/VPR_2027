@@ -12,10 +12,16 @@ import {
 } from '../services/progressService';
 import { getMotivationView } from '../services/motivationView';
 import { clearDeviceLearningStorage } from '../services/deviceReset';
+import {
+  SCHOOL_MONTHS,
+  curriculumProgressLabel,
+  resolveSchoolMonth,
+  schoolMonthTitle,
+} from '../services/schoolCurriculum';
 import { useExamStore } from '../store/useExamStore';
 import { useTrainingStore } from '../store/useTrainingStore';
 import { useUserStore } from '../store/useUserStore';
-import type { SubjectId } from '../types';
+import type { SchoolMonth, SubjectId } from '../types';
 import { Avatar, Button, Card, Modal } from '../components/ui';
 import styles from './ProfilePage.module.css';
 
@@ -51,6 +57,7 @@ export function ProfilePage() {
   const progress = getChildProgress(attempts, profile?.userId ?? '');
   const selectedIds = visibleSubjectIds(profile?.selectedSubjects);
   const overallScore = getOverallSubjectScore(progress.subjectScores, selectedIds);
+  const schoolMonth = resolveSchoolMonth(profile?.schoolMonth);
   const planHistory = profile
     ? getMergedDailyPlanHistory({
         userId: profile.userId,
@@ -174,6 +181,26 @@ export function ProfilePage() {
       </section>
 
       <section className={styles.spanAll}>
+        <h3>Учебный месяц</h3>
+        <p className={styles.sectionLead}>
+          {curriculumProgressLabel(schoolMonth)}. Поздние темы откроются, когда сдвинете месяц вперёд.
+        </p>
+        <div className={styles.subjectList}>
+          {SCHOOL_MONTHS.map((month) => (
+            <button
+              key={month.id}
+              type="button"
+              className={`${styles.subject} ${schoolMonth === month.id ? styles.subjectOn : ''}`}
+              onClick={() => updateProfile({ schoolMonth: month.id as SchoolMonth })}
+            >
+              <span className={styles.subjectMark} style={{ background: 'var(--color-accent)' }} />
+              <strong>{month.title}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.spanAll}>
         <h3>Предметы</h3>
         <p className={styles.sectionLead}>Можно изменить, если класс готовится не ко всем предметам.</p>
         <div className={styles.subjectList}>
@@ -205,9 +232,9 @@ export function ProfilePage() {
       <Card padding="sm" className={styles.teacherNote}>
         <h3>Для учителя</h3>
         <p>
-          Данные остаются только на этом устройстве. Сейчас один профиль на телефон или планшет: чтобы начать заново
-          под другим именем, нажмите «Очистить данные» (прогресс текущего ученика сотрётся). Переключения между
-          несколькими учениками без сброса пока нет. Это учебный тренажёр, не официальная ВПР.
+          Данные остаются только на этом устройстве. Учебный месяц ({schoolMonthTitle(schoolMonth)}) ограничивает
+          темы в тренировке — как в школьной программе. Режим ВПР открывает полный вариант. Один профиль на
+          устройство: перед другим учеником нажмите «Очистить данные». Это учебный тренажёр, не официальная ВПР.
         </p>
       </Card>
 

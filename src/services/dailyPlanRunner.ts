@@ -1,6 +1,6 @@
 import { dailyPlanCountForSelection, skillsForSubject } from '../data/taxonomy/catalog';
 import { localAttemptRecorder } from '../db';
-import type { SubjectId } from '../types';
+import type { SchoolMonth, SubjectId } from '../types';
 import { createDailyPlan, type DailyPlan, type DailyPlanItem } from './dailyPlanService';
 import {
   getCalendarDate,
@@ -9,7 +9,9 @@ import {
   type DailyPlanStorageBackend,
   localDailyPlanStorage,
 } from './dailyPlanStorage';
+import { getUnlockedSkillIds, resolveSchoolMonth } from './schoolCurriculum';
 import { taskRepository } from './taskRepository';
+import { useUserStore } from '../store/useUserStore';
 
 const DEFAULT_COUNT = 5;
 
@@ -20,6 +22,7 @@ export type GetDailyPlanInput = {
   nowIso?: string;
   excludeQuestionIds?: readonly string[];
   storage?: DailyPlanStorageBackend;
+  schoolMonth?: SchoolMonth;
 };
 
 export type CombinedDailyPlan = {
@@ -81,15 +84,22 @@ export function getDailyPlan(input: GetDailyPlanInput): DailyPlan {
 
   const count = input.count ?? DEFAULT_COUNT;
   const attempts = localAttemptRecorder.getAll(input.userId);
-  const tasks = taskRepository.getBySubject(input.subject).slice();
-  const skills = skillsForSubject(input.subject);
+  const month = resolveSchoolMonth(
+    input.schoolMonth ?? useUserStore.getState().profile?.schoolMonth,
+  );
+  const unlocked = new Set(getUnlockedSkillIds(input.subject, month));
+  const skills = skillsForSubject(input.subject).filter((skill) => unlocked.has(skill.id));
+  const tasks = taskRepository
+    .getBySubject(input.subject)
+    .filter((task) => !task.skillId || unlocked.has(task.skillId))
+    .slice();
   const plan = createDailyPlan({
     userId: input.userId,
     subject: input.subject,
     count,
     attempts,
     tasks,
-    skills,
+    skills: skills.length > 0 ? skills : skillsForSubject(input.subject),
     nowIso,
     excludeQuestionIds: input.excludeQuestionIds,
   });

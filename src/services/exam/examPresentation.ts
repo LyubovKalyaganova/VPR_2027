@@ -11,10 +11,16 @@ export function buildExamPresentation(task: Task): TaskPresentation {
       return task.answers && task.answers.length > 0 ? { options: shuffle(task.answers) } : {};
     case 'audio':
       if (task.matchingLeft && task.matchingLeft.length > 0) {
+        if (task.matchingRowOptions?.length) {
+          return { matchingRowOptions: task.matchingRowOptions.map((row) => shuffle([...row])) };
+        }
         return { matchingRight: shuffle(task.matchingRight ?? []) };
       }
       return { options: shuffle(task.answers ?? []) };
     case 'matching':
+      if (task.matchingRowOptions?.length) {
+        return { matchingRowOptions: task.matchingRowOptions.map((row) => shuffle([...row])) };
+      }
       return { matchingRight: shuffle(task.matchingRight ?? []) };
     case 'ordering':
     case 'classification':

@@ -9,12 +9,22 @@ import styles from './answers.module.css';
 interface AudioAnswerProps {
   task: Task;
   options: string[];
+  rowOptions?: string[][];
+  matchingRight?: string[];
   value: UserAnswer;
   disabled: boolean;
   onChange: (answer: UserAnswer) => void;
 }
 
-export function AudioAnswer({ task, options, value, disabled, onChange }: AudioAnswerProps) {
+export function AudioAnswer({
+  task,
+  options,
+  rowOptions,
+  matchingRight,
+  value,
+  disabled,
+  onChange,
+}: AudioAnswerProps) {
   const isEnglish = task.subject === 'english';
   const listenLimit = isEnglish ? (task.listenLimit ?? 2) : Number.POSITIVE_INFINITY;
   const [playCount, setPlayCount] = useState(0);
@@ -58,7 +68,8 @@ export function AudioAnswer({ task, options, value, disabled, onChange }: AudioA
   const answers = hasMatching ? (
     <MatchingAnswer
       left={task.matchingLeft ?? []}
-      right={task.matchingRight ?? ['1', '2', '3']}
+      right={matchingRight ?? task.matchingRight ?? ['1', '2', '3']}
+      rowOptions={rowOptions ?? task.matchingRowOptions}
       value={value && typeof value === 'object' && !Array.isArray(value) ? value : {}}
       disabled={answerDisabled}
       onChange={onChange}
@@ -76,8 +87,8 @@ export function AudioAnswer({ task, options, value, disabled, onChange }: AudioA
     return (
       <div className={styles.pool}>
         <p className={styles.hint}>
-          Listen to the recording. You can play it {listenLimit} times.
-          {playCount > 0 ? ` Playback ${playCount} of ${listenLimit}.` : ''}
+          Прослушай запись (до {listenLimit} раз). На ВПР аудирование тоже на английском.
+          {playCount > 0 ? ` Прослушано: ${playCount} из ${listenLimit}.` : ''}
         </p>
         {playback === 'unavailable' ? (
           <p className={styles.hint}>
@@ -94,7 +105,7 @@ export function AudioAnswer({ task, options, value, disabled, onChange }: AudioA
             disabled={disabled || (!speechText && !audioUrl) || !canPlay}
           >
             {playCount === 0
-              ? '▶ Listen'
+              ? '▶ Listen / Прослушать'
               : canPlay
                 ? `▶ Listen again (${playCount}/${listenLimit})`
                 : `▶ Limit reached (${listenLimit}/${listenLimit})`}

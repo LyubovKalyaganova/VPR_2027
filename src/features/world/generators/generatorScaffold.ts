@@ -43,17 +43,9 @@ export function uniqueDistractorsFromModels(
 }
 
 export function buildChoiceAnswers(correct: number | string, distractors: string[], rng: SeededRng): string[] {
-  const pad = ['—', 'не знаю', 'другое', 'нет', '0'];
-  const pool = [...distractors];
-  while (pool.length < 3) {
-    const filler = pickOne(
-      rng,
-      pad.filter((p) => String(correct) !== p && !pool.includes(p)),
-    );
-    pool.push(filler);
-  }
-  if (pool.length !== 3) {
-    throw new Error(`Нужно ровно 3 дистрактора, получено ${pool.length}`);
+  const pool = [...new Set(distractors.map((item) => String(item)).filter((item) => item && item !== String(correct)))];
+  if (pool.length < 3) {
+    throw new Error(`Нужно 3 дистрактора без заполнителей, получено ${pool.length} для «${correct}»`);
   }
   return shuffleSeeded([String(correct), ...pool.slice(0, 3)], rng);
 }
@@ -116,6 +108,7 @@ export function baseTask(args: {
   items?: string[];
   matchingLeft?: string[];
   matchingRight?: string[];
+  matchingRowOptions?: string[][];
   acceptableAnswers?: string[];
 }): Task {
   return {
@@ -144,6 +137,7 @@ export function baseTask(args: {
     items: args.items,
     matchingLeft: args.matchingLeft,
     matchingRight: args.matchingRight,
+    matchingRowOptions: args.matchingRowOptions,
     acceptableAnswers: args.acceptableAnswers,
   };
 }
@@ -153,14 +147,59 @@ export function svgToDataUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(compact)}`;
 }
 
+function weatherSymbolLabel(symbol: string): string {
+  switch (symbol) {
+    case '☀️':
+      return 'солнце';
+    case '🌧️':
+      return 'дождь';
+    case '⛅':
+      return 'облачно';
+    case '❄️':
+      return 'снег';
+    default:
+      return symbol;
+  }
+}
+
+/** Чистый SVG без foreignObject/HTML — иначе таблица пустая в Android WebView. */
 export function weatherTableSvg(days: Array<{ day: string; symbol: string; temp: number; wind: number }>): string {
-  const rows = days
-    .map(
-      (d) =>
-        `<tr><td>${d.day}</td><td font-size="18">${d.symbol}</td><td>${d.temp}°C</td><td>${d.wind} м/с</td></tr>`,
-    )
+  const width = 360;
+  const top = 30;
+  const headerH = 30;
+  const rowH = 34;
+  const height = top + headerH + days.length * rowH + 10;
+  const colX = [12, 118, 230, 290] as const;
+  const headers = ['День', 'Погода', 't°', 'Ветер'];
+
+  const headerCells = headers
+    .map((label, i) => `<text x="${colX[i]}" y="${top + 20}" font-size="13" font-weight="700" font-family="sans-serif" fill="#334155">${label}</text>`)
     .join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="${40 + days.length * 28}"><rect width="100%" height="100%" fill="#f0f8ff"/><text x="10" y="18" font-size="12" font-family="sans-serif">Прогноз погоды</text><g transform="translate(10,24)"><table xmlns="http://www.w3.org/1999/xhtml" style="border-collapse:collapse;font:12px sans-serif"><thead><tr style="background:#dde"><th>День</th><th>Погода</th><th>t°</th><th>Ветер</th></tr></thead><tbody>${rows}</tbody></table></g></svg>`;
+
+  const body = days
+    .map((day, index) => {
+      const y = top + headerH + index * rowH;
+      const bg = index % 2 === 0 ? '#ffffff' : '#e8f1fb';
+      const weather = weatherSymbolLabel(day.symbol);
+      return [
+        `<rect x="8" y="${y}" width="${width - 16}" height="${rowH}" fill="${bg}"/>`,
+        `<text x="${colX[0]}" y="${y + 22}" font-size="13" font-family="sans-serif" fill="#20242a">${day.day}</text>`,
+        `<text x="${colX[1]}" y="${y + 22}" font-size="13" font-family="sans-serif" fill="#20242a">${day.symbol} ${weather}</text>`,
+        `<text x="${colX[2]}" y="${y + 22}" font-size="13" font-family="sans-serif" fill="#20242a">${day.temp}°C</text>`,
+        `<text x="${colX[3]}" y="${y + 22}" font-size="13" font-family="sans-serif" fill="#20242a">${day.wind} м/с</text>`,
+      ].join('');
+    })
+    .join('');
+
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
+    `<rect width="100%" height="100%" rx="12" fill="#f0f8ff"/>`,
+    `<text x="12" y="20" font-size="14" font-weight="700" font-family="sans-serif" fill="#20242a">Прогноз погоды</text>`,
+    `<rect x="8" y="${top}" width="${width - 16}" height="${headerH}" fill="#d7e3f4"/>`,
+    headerCells,
+    body,
+    `</svg>`,
+  ].join('');
 }
 
 export function zoneMapSvg(): string {

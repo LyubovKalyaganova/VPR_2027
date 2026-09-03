@@ -13,6 +13,7 @@ import {
   READING_PASSAGES,
   REASONING_SCENARIOS,
   type FormField,
+  type GrammarCloze,
   type GrammarGap,
   type ListeningDialogue,
   type ReadingPassage,
@@ -59,6 +60,64 @@ function pickSubtype<T extends string>(options: GenOpts, rng: SeededRng, allowed
   return (options.subtype as T | undefined) ?? pickOne(rng, allowed);
 }
 
+function extraEnglishDistractors(correct: string, already: string[], pool: string[]): string[] {
+  const extra: string[] = [];
+  for (const item of pool) {
+    if (item === correct || already.includes(item) || extra.includes(item)) continue;
+    extra.push(item);
+  }
+  return extra;
+}
+
+function ruGrammarPoint(point: string): string {
+  const map: Record<string, string> = {
+    'Past Simple': 'Past Simple — прошедшее время (yesterday, last summer)',
+    'Present Simple': 'Present Simple — обычное действие (every day, every morning)',
+    'Present Continuous': 'Present Continuous — действие сейчас (now, Look!)',
+    will: 'will — будущее решение или обещание',
+    'going to': 'going to / Present Continuous — запланированное будущее',
+    superlative: 'превосходная степень (the …est / the most)',
+    pronoun: 'местоимение в нужном падеже (them, not they)',
+    no: 'no = not any (There are no sharks)',
+    some: 'some — в утверждениях',
+    any: 'any — в отрицаниях и вопросах',
+    be: 'глагол be (am / is / are)',
+    'be past': 'was / were — прошедшее be',
+    'have got': 'have got / has got — «есть, имеется»',
+    can: 'can — умение',
+    'can negative': 'can’t — отрицание умения',
+  };
+  return map[point] ?? point;
+}
+
+function clozePassage(cloze: GrammarCloze, gaps: GrammarGap[]): string {
+  const used = new Set(gaps.map((g) => g.label));
+  let text = cloze.text;
+  for (const gap of cloze.gaps) {
+    if (used.has(gap.label)) continue;
+    text = text.replace(`${gap.label}_____`, gap.options[gap.correct - 1]!);
+  }
+  return text;
+}
+
+function buildVprChoiceMatching(
+  questions: Array<{ label: string; prompt: string; options: readonly string[]; correct: 1 | 2 | 3 }>,
+): {
+  matchingLeft: string[];
+  matchingRight: string[];
+  matchingRowOptions: string[][];
+  correctAnswer: string[];
+} {
+  const matchingLeft = questions.map((q) => `${q.label}. ${q.prompt}`);
+  const matchingRowOptions = questions.map((q) => [...q.options]);
+  return {
+    matchingLeft,
+    matchingRight: matchingRowOptions[0] ?? [],
+    matchingRowOptions,
+    correctAnswer: questions.map((q, index) => `${matchingLeft[index]}|${q.options[q.correct - 1]!}`),
+  };
+}
+
 function buildListeningMatchingTask(
   code: EnglishSkillCode,
   dialogue: ListeningDialogue,
@@ -68,9 +127,7 @@ function buildListeningMatchingTask(
   vprHost?: string,
 ): Task {
   const m = meta(code);
-  const left = dialogue.questions.map((q) => `${q.label}. ${q.prompt}`);
-  const matchingRight = ['1', '2', '3'];
-  const correctAnswer = dialogue.questions.map((q) => `${q.label}. ${q.prompt}|${String(q.correct)}`);
+  const match = buildVprChoiceMatching(dialogue.questions);
   return baseTask({
     id: taskId(code, level, seed, 0),
     ...m,
@@ -79,13 +136,11 @@ function buildListeningMatchingTask(
     generatorId: m.generatorId,
     difficulty: level,
     taskType: 'audio',
-    question: `Listen to the dialogue twice. For each sentence, choose the correct answer (1, 2, or 3).`,
+    question: 'Listen to the dialogue twice. For each sentence, choose the correct answer.',
     transcript: dialogue.transcript,
     listenLimit: 2,
-    matchingLeft: left,
-    matchingRight,
-    correctAnswer,
-    explanation: `Answers follow the dialogue "${dialogue.title}".`,
+    ...match,
+    explanation: `Ответы следуют из диалога «${dialogue.title}». Прослушай ключевые факты ещё раз.`,
     vprTaskType: vprHost,
     generatorParams: { subtype, key: dialogue.id, dialogueId: dialogue.id },
   });
@@ -101,9 +156,7 @@ function buildReadingMatchingTask(
   vprHost?: string,
 ): Task {
   const m = meta(code);
-  const left = questions.map((q) => `${q.label}. ${q.prompt}`);
-  const matchingRight = ['1', '2', '3'];
-  const correctAnswer = questions.map((q) => `${q.label}. ${q.prompt}|${String(q.correct)}`);
+  const match = buildVprChoiceMatching(questions);
   return baseTask({
     id: taskId(code, level, seed, 0),
     ...m,
@@ -112,12 +165,10 @@ function buildReadingMatchingTask(
     generatorId: m.generatorId,
     difficulty: level,
     taskType: 'matching',
-    question: `Read the text. For each sentence, choose the correct answer (1, 2, or 3).`,
+    question: 'Read the text. For each sentence, choose the correct answer.',
     passage: passage.text,
-    matchingLeft: left,
-    matchingRight,
-    correctAnswer,
-    explanation: `Use evidence from "${passage.title}".`,
+    ...match,
+    explanation: `Опирайся на текст «${passage.title}»: найди предложение с нужным фактом.`,
     vprTaskType: vprHost,
     generatorParams: { subtype, key: passage.id, passageId: passage.id },
   });
@@ -133,15 +184,11 @@ function buildGrammarMatchingTask(
   vprHost?: string,
 ): Task {
   const cloze = GRAMMAR_CLOZE.find((c) => c.id === clozeId)!;
+  const selected = gaps.length >= 3 ? gaps : cloze.gaps;
   const m = meta(code);
-  const left = gaps.map((g) => `${g.label}. (${g.grammarPoint})`);
-  const optionsPool = [...new Set(gaps.flatMap((g) => g.options))];
-  const matchingRight = shuffleSeeded(optionsPool, createSeededRng(seed));
-  const correctAnswer = gaps.map((g) => {
-    const prompt = `${g.label}. (${g.grammarPoint})`;
-    const answer = g.options[g.correct - 1]!;
-    return `${prompt}|${answer}`;
-  });
+  const matchingLeft = selected.map((g) => `${g.label}.`);
+  const matchingRowOptions = selected.map((g) => [...g.options]);
+  const correctAnswer = selected.map((g) => `${g.label}.|${g.options[g.correct - 1]!}`);
   return baseTask({
     id: taskId(code, level, seed, 0),
     ...m,
@@ -150,12 +197,15 @@ function buildGrammarMatchingTask(
     generatorId: m.generatorId,
     difficulty: level,
     taskType: 'matching',
-    question: `Read the text and choose the correct grammar form for each gap.\n\n${cloze.text}`,
-    passage: cloze.text,
-    matchingLeft: left,
-    matchingRight,
+    question: 'Choose the correct grammar form for each gap.',
+    passage: clozePassage(cloze, selected),
+    matchingLeft,
+    matchingRight: matchingRowOptions[0] ?? [],
+    matchingRowOptions,
     correctAnswer,
-    explanation: `Grammar in context: ${cloze.title}.`,
+    explanation: selected
+      .map((g) => `${g.label}: «${g.options[g.correct - 1]}». ${ruGrammarPoint(g.grammarPoint)}.`)
+      .join(' '),
     vprTaskType: vprHost,
     generatorParams: { subtype, key: clozeId, clozeId },
   });
@@ -194,6 +244,12 @@ export function generateE02Task(options: GenOpts): Task {
   const q = pickOne(rng, dialogue.questions);
   const correct = q.options[q.correct - 1]!;
   const distractors = q.options.filter((o) => o !== correct);
+  const extra = extraEnglishDistractors(
+    correct,
+    distractors,
+    dialogue.questions.flatMap((item) => item.options),
+  );
+  const wrong = uniqueDistractorsFromModels(correct, [...distractors, ...extra], rng);
   if (subtype === 'number_name') {
     return baseTask({
       ...meta('E02'),
@@ -206,13 +262,12 @@ export function generateE02Task(options: GenOpts): Task {
       question: `Listen and choose the correct fact: ${q.prompt}`,
       transcript: dialogue.transcript,
       listenLimit: 2,
-      answers: buildChoiceAnswers(correct, distractors, rng),
+      answers: buildChoiceAnswers(correct, wrong, rng),
       correctAnswer: correct,
-      explanation: `The dialogue supports: "${correct}".`,
+      explanation: `В диалоге сказано: «${correct}».`,
       generatorParams: { subtype, key: `${dialogue.id}-${q.label}` },
     });
   }
-  const near = shuffleSeeded([...distractors, correct], rng);
   return baseTask({
     ...meta('E02'),
     id: taskId('E02', level, options.seed, 0),
@@ -224,9 +279,9 @@ export function generateE02Task(options: GenOpts): Task {
     question: `Listen carefully. Which answer matches the dialogue? ${q.prompt}`,
     transcript: dialogue.transcript,
     listenLimit: 2,
-    answers: buildChoiceAnswers(correct, near.filter((x) => x !== correct), rng),
+    answers: buildChoiceAnswers(correct, wrong, rng),
     correctAnswer: correct,
-    explanation: `Avoid the distractor; choose "${correct}".`,
+    explanation: `Не путай похожие слова из записи. Верно: «${correct}».`,
     generatorParams: { subtype: 'distractor_near', key: `${dialogue.id}-${q.label}` },
   });
 }
@@ -247,8 +302,8 @@ export function generateE03Task(options: GenOpts): Task {
   const dialogue = pickOne(rng, LISTENING_DIALOGUES);
   const topicOptions =
     subtype === 'topic'
-      ? ([dialogue.title, 'A maths lesson', 'A hospital visit'] as const)
-      : (['Friendly and calm', 'Angry and loud', 'Sad and silent'] as const);
+      ? ([dialogue.title, 'A maths lesson', 'A hospital visit', 'A football match'] as const)
+      : (['Friendly and calm', 'Angry and loud', 'Sad and silent', 'Bored and quiet'] as const);
   const correct = topicOptions[0];
   const distractors = uniqueDistractorsFromModels(correct, [...topicOptions], rng);
   return baseTask({
@@ -264,7 +319,7 @@ export function generateE03Task(options: GenOpts): Task {
     listenLimit: 2,
     answers: buildChoiceAnswers(correct, distractors, rng),
     correctAnswer: correct,
-    explanation: `Main idea: ${correct}.`,
+    explanation: `Главная мысль записи: ${correct}.`,
     generatorParams: { subtype, key: dialogue.id },
   });
 }
@@ -283,9 +338,7 @@ export function generateE04Task(options: GenOpts): Task {
   const rng = createSeededRng(options.seed);
   const subtype = pickSubtype(options, rng, ['who_what_where', 'event'] as const);
   const passage = pickOne(rng, READING_PASSAGES);
-  const questions = passage.questions.filter((q) => q.kind === 'specific' || (subtype === 'event' && q.label === 'C'));
-  const picked = questions.length >= 3 ? questions.slice(0, 5) : passage.questions.slice(0, 5);
-  return buildReadingMatchingTask('E04', passage, picked, subtype, level, options.seed, 'VPR-2');
+  return buildReadingMatchingTask('E04', passage, [...passage.questions], subtype, level, options.seed, 'VPR-2');
 }
 
 export function generateE04Series(options: { seed: number; countPerLevel?: number }): Task[] {
@@ -304,6 +357,12 @@ export function generateE05Task(options: GenOpts): Task {
   const passage = pickOne(rng, READING_PASSAGES);
   const trueQ = passage.questions.find((q) => q.kind === 'true_statement')!;
   const correct = trueQ.options[trueQ.correct - 1]!;
+  const extraTrue = extraEnglishDistractors(
+    correct,
+    trueQ.options.filter((o) => o !== correct),
+    passage.questions.flatMap((q) => q.options),
+  );
+  const trueWrong = uniqueDistractorsFromModels(correct, [...trueQ.options.filter((o) => o !== correct), ...extraTrue], rng);
   if (subtype === 'choose_true') {
     return baseTask({
       ...meta('E05'),
@@ -315,14 +374,19 @@ export function generateE05Task(options: GenOpts): Task {
       taskType: 'singleChoice',
       question: `Read the text and choose the true sentence.`,
       passage: passage.text,
-      answers: buildChoiceAnswers(correct, trueQ.options.filter((o) => o !== correct), rng),
+      answers: buildChoiceAnswers(correct, trueWrong, rng),
       correctAnswer: correct,
-      explanation: `This sentence matches the text.`,
+      explanation: `Это предложение совпадает с текстом.`,
       vprTaskType: 'VPR-2',
       generatorParams: { subtype, key: passage.id },
     });
   }
   const falseOption = trueQ.options.find((_, i) => i + 1 !== trueQ.correct)!;
+  const extraFalse = extraEnglishDistractors(
+    falseOption,
+    trueQ.options.filter((o) => o !== falseOption),
+    passage.questions.flatMap((q) => q.options),
+  );
   return baseTask({
     ...meta('E05'),
     id: taskId('E05', level, options.seed, 0),
@@ -333,9 +397,13 @@ export function generateE05Task(options: GenOpts): Task {
     taskType: 'singleChoice',
     question: `Which sentence is NOT true according to the text?`,
     passage: passage.text,
-    answers: buildChoiceAnswers(falseOption, trueQ.options.filter((o) => o !== falseOption), rng),
+    answers: buildChoiceAnswers(
+      falseOption,
+      uniqueDistractorsFromModels(falseOption, [...trueQ.options.filter((o) => o !== falseOption), ...extraFalse], rng),
+      rng,
+    ),
     correctAnswer: falseOption,
-    explanation: `This statement contradicts the text.`,
+    explanation: `Это утверждение тексту противоречит.`,
     generatorParams: { subtype: 'reject_false', key: passage.id },
   });
 }
@@ -366,9 +434,17 @@ export function generateE06Task(options: GenOpts): Task {
     taskType: 'singleChoice',
     question: subtype === 'predict_title' ? 'Choose the best title for the text.' : 'What is the main idea?',
     passage: passage.text,
-    answers: buildChoiceAnswers(correct, mainQ.options.filter((o) => o !== correct), rng),
+    answers: buildChoiceAnswers(
+      correct,
+      uniqueDistractorsFromModels(
+        correct,
+        [...mainQ.options.filter((o) => o !== correct), ...passage.questions.flatMap((q) => q.options)],
+        rng,
+      ),
+      rng,
+    ),
     correctAnswer: correct,
-    explanation: `Main idea / title: ${correct}.`,
+    explanation: `Заголовок / главная мысль: ${correct}.`,
     generatorParams: { subtype, key: passage.id },
   });
 }
@@ -399,9 +475,17 @@ export function generateE07Task(options: GenOpts): Task {
     taskType: 'singleChoice',
     question: subtype === 'internationalism' ? `Guess the meaning (international word): ${vocabQ.prompt}` : vocabQ.prompt,
     passage: passage.text,
-    answers: buildChoiceAnswers(correct, vocabQ.options.filter((o) => o !== correct), rng),
+    answers: buildChoiceAnswers(
+      correct,
+      uniqueDistractorsFromModels(
+        correct,
+        [...vocabQ.options.filter((o) => o !== correct), ...passage.questions.flatMap((q) => q.options)],
+        rng,
+      ),
+      rng,
+    ),
     correctAnswer: correct,
-    explanation: `Context clue leads to: ${correct}.`,
+    explanation: `По контексту подходит: ${correct}.`,
     generatorParams: { subtype, key: passage.id },
   });
 }
@@ -420,8 +504,7 @@ export function generateE08Task(options: GenOpts): Task {
   const rng = createSeededRng(options.seed);
   const subtype = pickSubtype(options, rng, ['tense_marker', 'agreement_choice'] as const);
   const cloze = pickOne(rng, GRAMMAR_CLOZE);
-  const gaps = cloze.gaps.slice(0, 5);
-  return buildGrammarMatchingTask('E08', cloze.id, gaps, subtype, level, options.seed, 'VPR-3');
+  return buildGrammarMatchingTask('E08', cloze.id, [...cloze.gaps], subtype, level, options.seed, 'VPR-3');
 }
 
 export function generateE08Series(options: { seed: number; countPerLevel?: number }): Task[] {
@@ -443,15 +526,7 @@ export function generateE09Task(options: GenOpts): Task {
     rng,
     GRAMMAR_CLOZE.filter((c) => c.gaps.some((g) => g.grammarPoint.includes(marker.split(' ')[0]!))),
   );
-  const gaps = cloze.gaps.filter((g) =>
-    subtype === 'past_marker'
-      ? g.grammarPoint.includes('Past')
-      : subtype === 'every_year'
-        ? g.grammarPoint.includes('Present Simple')
-        : g.grammarPoint.includes('Continuous'),
-  );
-  const useGaps = gaps.length >= 2 ? gaps.slice(0, 4) : cloze.gaps.slice(0, 4);
-  return buildGrammarMatchingTask('E09', cloze.id, useGaps, subtype, level, options.seed);
+  return buildGrammarMatchingTask('E09', cloze.id, [...cloze.gaps], subtype, level, options.seed);
 }
 
 export function generateE09Series(options: { seed: number; countPerLevel?: number }): Task[] {
@@ -469,8 +544,7 @@ export function generateE10Task(options: GenOpts): Task {
   const subtype = pickSubtype(options, rng, ['will', 'going_to'] as const);
   const point = subtype === 'will' ? 'will' : 'going to';
   const cloze = pickOne(rng, GRAMMAR_CLOZE.filter((c) => c.gaps.some((g) => g.grammarPoint.toLowerCase().includes(point))));
-  const gaps = cloze.gaps.filter((g) => g.grammarPoint.toLowerCase().includes(point)).slice(0, 4);
-  return buildGrammarMatchingTask('E10', cloze.id, gaps.length ? gaps : cloze.gaps.slice(0, 3), subtype, level, options.seed);
+  return buildGrammarMatchingTask('E10', cloze.id, [...cloze.gaps], subtype, level, options.seed);
 }
 
 export function generateE10Series(options: { seed: number; countPerLevel?: number }): Task[] {
@@ -489,8 +563,7 @@ export function generateE11Task(options: GenOpts): Task {
   const point =
     subtype === 'superlative' ? 'superlative' : subtype === 'pronoun' ? 'pronoun' : 'no';
   const cloze = pickOne(rng, GRAMMAR_CLOZE.filter((c) => c.gaps.some((g) => g.grammarPoint.toLowerCase().includes(point))));
-  const gaps = cloze.gaps.filter((g) => g.grammarPoint.toLowerCase().includes(point)).slice(0, 4);
-  return buildGrammarMatchingTask('E11', cloze.id, gaps.length ? gaps : cloze.gaps.slice(0, 3), subtype, level, options.seed);
+  return buildGrammarMatchingTask('E11', cloze.id, [...cloze.gaps], subtype, level, options.seed);
 }
 
 export function generateE11Series(options: { seed: number; countPerLevel?: number }): Task[] {
@@ -517,7 +590,7 @@ function generateLexisTask(code: 'E12' | 'E13', pool: typeof LEXIS_E12, fieldFil
     question: `Choose the correct English word: ${item.translation}`,
     answers: buildChoiceAnswers(item.word, item.distractors, rng),
     correctAnswer: item.word,
-    explanation: `${item.translation} = ${item.word}`,
+    explanation: `${item.translation} по-английски: ${item.word}.`,
     generatorParams: { subtype: item.field, key: item.word },
   });
 }
@@ -566,7 +639,7 @@ export function generateE14Task(options: GenOpts): Task {
     passage: profile.text,
     correctAnswer: field.answer,
     acceptableAnswers: field.acceptableAnswers,
-    explanation: `${field.label}: ${field.answer}`,
+    explanation: `В анкете поле «${field.label}»: ${field.answer}.`,
     vprTaskType: 'VPR-4',
     generatorParams: { subtype: field.key, key: profile.id },
   });
@@ -600,7 +673,7 @@ export function generateE15Task(options: GenOpts): Task {
     passage: profile.text,
     correctAnswer: field.answer,
     acceptableAnswers: field.acceptableAnswers,
-    explanation: `Correct spelling: ${field.answer}`,
+    explanation: `Правильное написание: ${field.answer}.`,
     generatorParams: { subtype, key: `${profile.id}-${field.key}` },
   });
 }
@@ -633,7 +706,7 @@ export function generateE16Task(options: GenOpts): Task {
       passage: profile.text,
       answers: buildChoiceAnswers(missing.label, fields.filter((f) => f.key !== missing.key).map((f) => f.label), rng),
       correctAnswer: missing.label,
-      explanation: `Required field: ${missing.label}.`,
+      explanation: `В анкете не хватает поля «${missing.label}».`,
       generatorParams: { subtype, key: profile.id },
     });
   }
@@ -650,7 +723,7 @@ export function generateE16Task(options: GenOpts): Task {
     matchingLeft: left,
     matchingRight: right,
     correctAnswer,
-    explanation: `All fields must be filled for K1 analog.`,
+    explanation: 'Все поля анкеты нужно заполнить по тексту — так проверяют полноту ответа.',
     generatorParams: { subtype, key: profile.id },
   });
 }
@@ -686,7 +759,7 @@ export function generateE17Task(options: GenOpts): Task {
     question: `Choose the correct form: ${t.q}`,
     answers: buildChoiceAnswers(t.correct, t.wrong, rng),
     correctAnswer: t.correct,
-    explanation: `Correct structure: ${t.correct}`,
+    explanation: `Нужная форма: ${t.correct}.`,
     generatorParams: { subtype, key: subtype },
   });
 }
@@ -737,9 +810,13 @@ export function generateE18Task(options: GenOpts): Task {
       taskType: 'singleChoice',
       question: `Read and eliminate the distractor for: ${q.prompt}`,
       passage: passage.text,
-      answers: buildChoiceAnswers(eliminate, q.options.filter((o) => o !== eliminate), rng),
+      answers: buildChoiceAnswers(
+        eliminate,
+        uniqueDistractorsFromModels(eliminate, [...q.options.filter((o) => o !== eliminate), ...passage.questions.flatMap((item) => item.options)], rng),
+        rng,
+      ),
       correctAnswer: eliminate,
-      explanation: `This option is NOT supported by the text.`,
+      explanation: 'Этот вариант тексту не соответствует.',
       generatorParams: { subtype, reasoningMode: subtype, key: passage.id },
     });
   }
@@ -755,7 +832,7 @@ export function generateE18Task(options: GenOpts): Task {
       question: 'Choose the best order of steps to answer a reading task.',
       items: ['Read the question', 'Find evidence in the text', 'Compare options', 'Choose the answer'],
       correctAnswer: ['Read the question', 'Find evidence in the text', 'Compare options', 'Choose the answer'],
-      explanation: 'Strategy: question → evidence → compare → answer.',
+      explanation: 'Сначала вопрос, потом доказательство в тексте, сравнение вариантов и ответ.',
       generatorParams: { subtype, reasoningMode: subtype, key: 'steps' },
     });
   }
@@ -773,9 +850,17 @@ export function generateE18Task(options: GenOpts): Task {
     question: `Listen and locate evidence for: ${q.prompt}`,
     transcript: dialogue.transcript,
     listenLimit: 2,
-    answers: buildChoiceAnswers(correct, q.options.filter((o) => o !== correct), rng),
+    answers: buildChoiceAnswers(
+      correct,
+      uniqueDistractorsFromModels(
+        correct,
+        [...q.options.filter((o) => o !== correct), ...dialogue.questions.flatMap((item) => item.options)],
+        rng,
+      ),
+      rng,
+    ),
     correctAnswer: correct,
-    explanation: `Evidence supports: ${correct}`,
+    explanation: `В записи сказано: «${correct}».`,
     generatorParams: { subtype: 'locate_line', reasoningMode: 'locate_line', key: dialogue.id },
   });
 }

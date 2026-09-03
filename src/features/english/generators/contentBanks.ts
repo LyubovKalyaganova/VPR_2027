@@ -333,7 +333,7 @@ export const GRAMMAR_CLOZE: readonly GrammarCloze[] = [
       { label: 'A', options: ['have got', 'has got', 'had got'], correct: 1, grammarPoint: 'have got' },
       { label: 'B', options: ['is', 'are', 'am'], correct: 1, grammarPoint: 'be' },
       { label: 'C', options: ['walk', 'walks', 'walked'], correct: 1, grammarPoint: 'Present Simple' },
-      { label: 'D', options: ['chews', 'chewed', 'chew'], correct: 1, grammarPoint: 'Present Continuous' },
+      { label: 'D', options: ['is chewing', 'chews', 'chewed'], correct: 1, grammarPoint: 'Present Continuous' },
       { label: 'E', options: ['are going', 'go', 'went'], correct: 1, grammarPoint: 'going to' },
     ],
   },
@@ -394,7 +394,7 @@ export const GRAMMAR_CLOZE: readonly GrammarCloze[] = [
       { label: 'B', options: ['buy', 'buys', 'bought'], correct: 1, grammarPoint: 'Present Simple' },
       { label: 'C', options: ['some', 'any', 'no'], correct: 2, grammarPoint: 'any' },
       { label: 'D', options: ['help', 'helps', 'helped'], correct: 1, grammarPoint: 'Present Simple' },
-      { label: 'E', options: ['walk', 'walked', 'walking'], correct: 2, grammarPoint: 'Past Simple' },
+      { label: 'E', options: ['get', 'got', 'getting'], correct: 1, grammarPoint: 'Present Simple' },
     ],
   },
   {
@@ -577,10 +577,10 @@ export const LEXIS_E13: readonly LexisItem[] = [
 ];
 
 export const REASONING_SCENARIOS = [
-  { id: 'rs-past-marker', marker: 'last year', rule: 'Past Simple', evidence: 'time marker in the sentence' },
-  { id: 'rs-every-year', marker: 'every year', rule: 'Present Simple', evidence: 'habit marker' },
-  { id: 'rs-now', marker: 'now', rule: 'Present Continuous', evidence: 'action happening now' },
-  { id: 'rs-the-est', marker: 'the ...est', rule: 'superlative', evidence: 'the + superlative form' },
+  { id: 'rs-past-marker', marker: 'last year', rule: 'Past Simple', evidence: 'Маркер last year указывает на Past Simple — действие в прошлом.' },
+  { id: 'rs-every-year', marker: 'every year', rule: 'Present Simple', evidence: 'Маркер every year — обычное, повторяющееся действие, Present Simple.' },
+  { id: 'rs-now', marker: 'now', rule: 'Present Continuous', evidence: 'Маркер now — действие происходит сейчас, Present Continuous.' },
+  { id: 'rs-the-est', marker: 'the ...est', rule: 'superlative', evidence: 'Форма the + -est — превосходная степень прилагательного.' },
 ] as const;
 
 export function getListeningById(id: string): ListeningDialogue {

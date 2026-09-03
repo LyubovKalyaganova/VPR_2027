@@ -29,6 +29,9 @@ export interface Skill {
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
+/** Учебный месяц 4 класса: 1 = сентябрь … 9 = май */
+export type SchoolMonth = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
 export type SourceType = 'demo' | 'training' | 'vpr' | 'diagnostic' | 'generated';
 
 export type TaskType =
@@ -93,6 +96,8 @@ export interface Task {
   maxScore?: number;
   matchingLeft?: string[];
   matchingRight?: string[];
+  /** Свои варианты для каждой левой строки (клоуз / аудирование ВПР). */
+  matchingRowOptions?: string[][];
   categories?: string[];
   items?: string[];
   passage?: string;
@@ -104,6 +109,8 @@ export interface UserProfile {
   class: 4;
   avatar: string;
   selectedSubjects: SubjectId[];
+  /** 1 = сентябрь … 9 = май; от этого зависит, какие темы открыты */
+  schoolMonth?: SchoolMonth;
   createdAt: string;
   onboardingCompleted: boolean;
 }
